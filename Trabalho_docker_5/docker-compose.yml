@@ -1,0 +1,31 @@
+version: '3.8'
+services:
+  rest_api:
+    build: .
+    command: uvicorn rest_app:app --host 0.0.0.0 --port 8000
+    ports: ["8000:8000"]
+    volumes: ["./data:/app/data"]
+
+  graphql_api:
+    build: .
+    command: uvicorn graphql_app:app --host 0.0.0.0 --port 8001
+    ports: ["8001:8001"]
+    volumes: ["./data:/app/data"]
+
+  soap_api:
+    build: .
+    command: python soap_app.py
+    ports: ["8002:8002"]
+    volumes: ["./data:/app/data"]
+
+  grpc_api:
+    build: .
+    command: python grpc_app.py
+    ports: ["50051:50051"]
+    volumes: ["./data:/app/data"]
+
+  locust:
+    build: .
+    command: locust -f locustfile.py
+    ports: ["8089:8089"]
+    volumes: [".:/app"]
