@@ -1,31 +1,96 @@
 version: '3.8'
 services:
-  rest_api:
-    build: .
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: streaming_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: password
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+
+  # --- APIS EM PYTHON ---
+  rest_py:
+    build: 
+      context: .
+      dockerfile: python/Dockerfile
     command: uvicorn rest_app:app --host 0.0.0.0 --port 8000
     ports: ["8000:8000"]
-    volumes: ["./data:/app/data"]
-
-  graphql_api:
-    build: .
+    depends_on: [db]
+  graphql_py:
+    build: 
+      context: .
+      dockerfile: python/Dockerfile
     command: uvicorn graphql_app:app --host 0.0.0.0 --port 8001
     ports: ["8001:8001"]
-    volumes: ["./data:/app/data"]
-
-  soap_api:
-    build: .
+    depends_on: [db]
+  soap_py:
+    build: 
+      context: .
+      dockerfile: python/Dockerfile
     command: python soap_app.py
     ports: ["8002:8002"]
-    volumes: ["./data:/app/data"]
-
-  grpc_api:
-    build: .
+    depends_on: [db]
+  grpc_py:
+    build: 
+      context: .
+      dockerfile: python/Dockerfile
     command: python grpc_app.py
     ports: ["50051:50051"]
-    volumes: ["./data:/app/data"]
+    depends_on: [db]
 
+  # --- APIS EM TYPESCRIPT ---
+  rest_ts:
+    build: 
+      context: .
+      dockerfile: typescript/Dockerfile
+    command: npx ts-node src/rest_app.ts
+    ports: ["9000:9000"]
+    depends_on: [db]
+  graphql_ts:
+    build: 
+      context: .
+      dockerfile: typescript/Dockerfile
+    command: npx ts-node src/graphql_app.ts
+    ports: ["9001:9001"]
+    depends_on: [db]
+  soap_ts:
+    build: 
+      context: .
+      dockerfile: typescript/Dockerfile
+    command: npx ts-node src/soap_app.ts
+    ports: ["9002:9002"]
+    depends_on: [db]
+  grpc_ts:
+    build: 
+      context: .
+      dockerfile: typescript/Dockerfile
+    command: npx ts-node src/grpc_app.ts
+    ports: ["50052:50052"]
+    depends_on: [db]
+
+  # --- LOCUST ---
   locust:
-    build: .
-    command: locust -f locustfile.py
+    build: 
+      context: .
+      dockerfile: python/Dockerfile
+    command: locust -f locustfile.py --host=http://rest_py:8000
     ports: ["8089:8089"]
-    volumes: [".:/app"]
+    depends_on: [rest_py, rest_ts] # Garante que só sobe depois de algumas APIs
+    # VOLUME REMOVIDO PARA NÃO SOBREESCREVER OS ARQUIVOS COMPILADOS!
+
+volumes:
+  pgdata:

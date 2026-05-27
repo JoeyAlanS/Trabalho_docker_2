@@ -2,18 +2,22 @@ syntax = "proto3";
 
 package streaming;
 
-message Empty {}
-
-message Usuario {
-  int32 id = 1;
-  string nome = 2;
-  int32 idade = 3;
-}
-
-message UsuarioList {
-  repeated Usuario usuarios = 1;
-}
-
 service StreamingService {
-  rpc GetUsuarios (Empty) returns (UsuarioList);
+  rpc ListarUsuarios(Empty) returns (UsuarioList);
+  rpc ListarMusicas(Empty) returns (MusicaList);
+  rpc ListarPlaylistsUsuario(IdRequest) returns (PlaylistList);
+  rpc ListarMusicasPlaylist(IdRequest) returns (MusicaList);
+  rpc ListarPlaylistsPorMusica(IdRequest) returns (PlaylistList);
 }
+
+message Empty {}
+message IdRequest { int32 id = 1; }
+
+message Usuario { int32 id = 1; string nome = 2; int32 idade = 3; }
+message UsuarioList { repeated Usuario usuarios = 1; }
+
+message Musica { int32 id = 1; string nome = 2; string artista = 3; }
+message MusicaList { repeated Musica musicas = 1; }
+
+message Playlist { int32 id = 1; string nome = 2; int32 usuario_id = 3; }
+message PlaylistList { repeated Playlist playlists = 1; }

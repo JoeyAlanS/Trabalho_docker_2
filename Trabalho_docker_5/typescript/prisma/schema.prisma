@@ -1,0 +1,39 @@
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://admin:password@db:5432/streaming_db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model usuarios {
+  id    Int    @id @default(autoincrement())
+  nome  String
+  idade Int?
+  playlists playlists[]
+}
+
+model musicas {
+  id      Int    @id @default(autoincrement())
+  nome    String
+  artista String
+  playlist_musica playlist_musica[]
+}
+
+model playlists {
+  id         Int      @id @default(autoincrement())
+  nome       String
+  usuario_id Int
+  usuario    usuarios @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  playlist_musica playlist_musica[]
+}
+
+model playlist_musica {
+  playlist_id Int
+  musica_id   Int
+  playlists   playlists @relation(fields: [playlist_id], references: [id], onDelete: Cascade)
+  musicas     musicas   @relation(fields: [musica_id], references: [id], onDelete: Cascade)
+
+  @@id([playlist_id, musica_id])
+}
