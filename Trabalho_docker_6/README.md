@@ -72,7 +72,7 @@ Certifique-se de ter instalado:
 1. Navegue até a pasta raiz do projeto (onde está o `docker-compose.yml`):
 
 ```bash
-cd Trabalho_docker_5
+cd Trabalho_docker_6
 ```
 
 2. Execute o comando de construção e inicialização:
