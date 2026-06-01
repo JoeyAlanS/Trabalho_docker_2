@@ -1,0 +1,32 @@
+num_nodes: 12
+min_neighbors: 2
+max_neighbors: 4
+resources:
+	n1: r1, r2, r3
+	n2: r4, r5
+	n3: r1, r6
+	n4: r2, r7
+	n5: r3, r8
+	n6: r4, r9
+	n7: r5, r10
+	n8: r6, r1
+	n9: r7, r2
+	n10: r8, r3
+	n11: r9, r4
+	n12: r10, r5
+edges:
+	n1, n2
+	n1, n3
+	n2, n4
+	n3, n5
+	n4, n6
+	n5, n7
+	n6, n8
+	n7, n9
+	n8, n10
+	n9, n11
+	n10, n12
+	n11, n12
+	n12, n1
+	n2, n5
+	n3, n6

@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  p2p-simulator:
+    build: .
+    container_name: p2p_simulator_app
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+
+  locust-load-test:
+    build: .
+    container_name: p2p_locust_tester
+    ports:
+      - "8089:8089"
+    volumes:
+      - .:/app
+    command: locust -f locustfile.py --host http://p2p-simulator:8000
+    depends_on:
+      - p2p-simulator

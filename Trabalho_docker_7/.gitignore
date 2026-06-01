@@ -1,0 +1,28 @@
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.env
+venv/
+env/
+
+# Docker
+.dockerignore
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# CSV/Data (opcional - descomente se quiser ignorar)
+# csv/
