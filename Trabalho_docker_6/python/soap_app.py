@@ -58,6 +58,96 @@ class SOAPService(ServiceBase):
         for p in db.query(DbPlaylist).join(playlist_musica).filter(playlist_musica.c.musica_id == musica_id).all(): 
             yield SoapPlaylist(id=p.id, nome=p.nome, usuario_id=p.usuario_id)
         db.close()
+    
+    @rpc(Unicode, Integer, _returns=SoapUsuario)
+    def criar_usuario(ctx, nome, idade):
+        db = SessionLocal()
+        novo = DbUser(nome=nome, idade=idade)
+        db.add(novo)
+        db.commit()
+        db.refresh(novo)
+        db.close()
+        return SoapUsuario(id=novo.id, nome=novo.nome, idade=novo.idade)
+
+    @rpc(Unicode, Unicode, _returns=SoapMusica)
+    def criar_musica(ctx, nome, artista):
+        db = SessionLocal()
+        nova = DbMusica(nome=nome, artista=artista)
+        db.add(nova)
+        db.commit()
+        db.refresh(nova)
+        db.close()
+        return SoapMusica(id=nova.id, nome=nova.nome, artista=nova.artista)
+
+    @rpc(Unicode, Integer, _returns=SoapPlaylist)
+    def criar_playlist(ctx, nome, usuario_id):
+        db = SessionLocal()
+        nova = DbPlaylist(nome=nome, usuario_id=usuario_id)
+        db.add(nova)
+        db.commit()
+        db.refresh(nova)
+        db.close()
+        return SoapPlaylist(id=nova.id, nome=nova.nome, usuario_id=nova.usuario_id)
+
+    @rpc(Integer, Unicode, Integer, _returns=SoapUsuario)
+    def atualizar_usuario(ctx, id, nome, idade):
+        db = SessionLocal()
+        u = db.query(DbUser).filter(DbUser.id == id).first()
+        if u:
+            u.nome = nome
+            u.idade = idade
+            db.commit()
+            db.refresh(u)
+        db.close()
+        return SoapUsuario(id=u.id, nome=u.nome, idade=u.idade)
+
+    @rpc(Integer, _returns=Unicode)
+    def deletar_usuario(ctx, id):
+        db = SessionLocal()
+        db.query(DbUser).filter(DbUser.id == id).delete()
+        db.commit()
+        db.close()
+        return "Deletado com sucesso"
+
+    @rpc(Integer, Unicode, Unicode, _returns=SoapMusica)
+    def atualizar_musica(ctx, id, nome, artista):
+        db = SessionLocal()
+        m = db.query(DbMusica).filter(DbMusica.id == id).first()
+        if m:
+            m.nome = nome
+            m.artista = artista
+            db.commit()
+            db.refresh(m)
+        db.close()
+        return SoapMusica(id=m.id, nome=m.nome, artista=m.artista)
+
+    @rpc(Integer, _returns=Unicode)
+    def deletar_musica(ctx, id):
+        db = SessionLocal()
+        db.query(DbMusica).filter(DbMusica.id == id).delete()
+        db.commit()
+        db.close()
+        return "Deletado com sucesso"
+
+    @rpc(Integer, Unicode, Integer, _returns=SoapPlaylist)
+    def atualizar_playlist(ctx, id, nome, usuario_id):
+        db = SessionLocal()
+        p = db.query(DbPlaylist).filter(DbPlaylist.id == id).first()
+        if p:
+            p.nome = nome
+            p.usuario_id = usuario_id
+            db.commit()
+            db.refresh(p)
+        db.close()
+        return SoapPlaylist(id=p.id, nome=p.nome, usuario_id=p.usuario_id)
+
+    @rpc(Integer, _returns=Unicode)
+    def deletar_playlist(ctx, id):
+        db = SessionLocal()
+        db.query(DbPlaylist).filter(DbPlaylist.id == id).delete()
+        db.commit()
+        db.close()
+        return "Deletado com sucesso"
 
 application = Application([SOAPService], 'streaming.soap', in_protocol=Soap11(validator='lxml'), out_protocol=Soap11())
 

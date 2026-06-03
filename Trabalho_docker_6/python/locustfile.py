@@ -27,7 +27,7 @@ class Teste_1_REST(HttpUser):
     @task  #<--- Remova o '#' no início desta linha para ativar o REST
     def rest(self):
         self.client.get(f"{HOST_REST_PY}/usuarios", name="1. REST (PY)")
-        self.client.get(f"{HOST_REST_TS}/usuarios", name="1. REST (TS)")
+        #self.client.get(f"{HOST_REST_TS}/usuarios", name="1. REST (TS)")
 
 # ==========================================
 # 2. TESTE GRAPHQL
@@ -35,7 +35,7 @@ class Teste_1_REST(HttpUser):
 class Teste_2_GraphQL(HttpUser):
     wait_time = between(1, 2)
 
-    @task  #<--- Remova o '#' no início desta linha para ativar o GraphQL
+    #@task  #<--- Remova o '#' no início desta linha para ativar o GraphQL
     def graphql(self):
         payload = {"query": "query { usuarios { id nome } }"}
         headers = {"Content-Type": "application/json", "Accept": "application/json"}
@@ -54,7 +54,7 @@ class Teste_2_GraphQL(HttpUser):
 class Teste_3_SOAP(HttpUser):
     wait_time = between(1, 2)
 
-    @task  # <--- Este está ativo! O Locust rodará apenas o SOAP agora.
+    #@task  # <--- Este está ativo! O Locust rodará apenas o SOAP agora.
     def soap(self):
         # Python (Spyne)
         body_py = """<?xml version="1.0" encoding="UTF-8"?>
@@ -89,7 +89,7 @@ class Teste_3_SOAP(HttpUser):
 class Teste_4_gRPC(HttpUser):
     wait_time = between(1, 2)
 
-    @task  #<--- Remova o '#' no início desta linha para ativar o gRPC
+    #@task  #<--- Remova o '#' no início desta linha para ativar o gRPC
     def grpc_test(self):
         self.disparar_grpc(HOST_GRPC_PY, "4. gRPC (PY)")
         self.disparar_grpc(HOST_GRPC_TS, "4. gRPC (TS)")

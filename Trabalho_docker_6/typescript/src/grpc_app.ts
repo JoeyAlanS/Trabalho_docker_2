@@ -28,6 +28,48 @@ server.addService(streamingProto.StreamingService.service, {
   ListarPlaylistsPorMusica: async (call: any, callback: any) => {
     const d = await prisma.playlist_musica.findMany({ where: { musica_id: call.request.id }, include: { playlists: true } });
     callback(null, { playlists: d.map(x => x.playlists) });
+  },
+  CriarUsuario: async (call: any, callback: any) => {
+    const { nome, idade } = call.request;
+    const novo = await prisma.usuarios.create({ data: { nome, idade } });
+    callback(null, novo);
+  },
+  CriarMusica: async (call: any, callback: any) => {
+    const { nome, artista } = call.request;
+    const nova = await prisma.musicas.create({ data: { nome, artista } });
+    callback(null, nova);
+  },
+  CriarPlaylist: async (call: any, callback: any) => {
+    const { nome, usuario_id } = call.request;
+    const nova = await prisma.playlists.create({ data: { nome, usuario_id } });
+    callback(null, nova);
+  },
+  AtualizarUsuario: async (call: any, callback: any) => {
+    const { id, nome, idade } = call.request;
+    const atualizado = await prisma.usuarios.update({ where: { id }, data: { nome, idade } });
+    callback(null, atualizado);
+  },
+  DeletarUsuario: async (call: any, callback: any) => {
+    await prisma.usuarios.delete({ where: { id: call.request.id } });
+    callback(null, {});
+  },
+  AtualizarMusica: async (call: any, callback: any) => {
+    const { id, nome, artista } = call.request;
+    const atualizada = await prisma.musicas.update({ where: { id }, data: { nome, artista } });
+    callback(null, atualizada);
+  },
+  DeletarMusica: async (call: any, callback: any) => {
+    await prisma.musicas.delete({ where: { id: call.request.id } });
+    callback(null, {});
+  },
+  AtualizarPlaylist: async (call: any, callback: any) => {
+    const { id, nome, usuario_id } = call.request;
+    const atualizada = await prisma.playlists.update({ where: { id }, data: { nome, usuario_id } });
+    callback(null, atualizada);
+  },
+  DeletarPlaylist: async (call: any, callback: any) => {
+    await prisma.playlists.delete({ where: { id: call.request.id } });
+    callback(null, {});
   }
 });
 

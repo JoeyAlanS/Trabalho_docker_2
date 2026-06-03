@@ -8,6 +8,15 @@ service StreamingService {
   rpc ListarPlaylistsUsuario(IdRequest) returns (PlaylistList);
   rpc ListarMusicasPlaylist(IdRequest) returns (MusicaList);
   rpc ListarPlaylistsPorMusica(IdRequest) returns (PlaylistList);
+  rpc CriarUsuario (CriarUsuarioRequest) returns (Usuario);
+  rpc CriarMusica (CriarMusicaRequest) returns (Musica);
+  rpc CriarPlaylist (CriarPlaylistRequest) returns (Playlist);
+  rpc AtualizarUsuario (AtualizarUsuarioRequest) returns (Usuario);
+  rpc DeletarUsuario (IdRequest) returns (Empty);
+  rpc AtualizarMusica (AtualizarMusicaRequest) returns (Musica);
+  rpc DeletarMusica (IdRequest) returns (Empty);
+  rpc AtualizarPlaylist (AtualizarPlaylistRequest) returns (Playlist);
+  rpc DeletarPlaylist (IdRequest) returns (Empty);
 }
 
 message Empty {}
@@ -21,3 +30,34 @@ message MusicaList { repeated Musica musicas = 1; }
 
 message Playlist { int32 id = 1; string nome = 2; int32 usuario_id = 3; }
 message PlaylistList { repeated Playlist playlists = 1; }
+
+message CriarUsuarioRequest {
+  string nome = 1;
+  int32 idade = 2;
+}
+
+message CriarMusicaRequest {
+  string nome = 1;
+  string artista = 2;
+}
+
+message CriarPlaylistRequest {
+  string nome = 1;
+  int32 usuario_id = 2;
+}
+
+message AtualizarUsuarioRequest {
+  int32 id = 1;
+  string nome = 2;
+  int32 idade = 3;
+}
+message AtualizarMusicaRequest {
+  int32 id = 1;
+  string nome = 2;
+  string artista = 3;
+}
+message AtualizarPlaylistRequest {
+  int32 id = 1;
+  string nome = 2;
+  int32 usuario_id = 3;
+}
