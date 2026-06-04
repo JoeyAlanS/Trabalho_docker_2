@@ -7,7 +7,12 @@ CREATE TABLE usuarios (
 CREATE TABLE musicas (
     id SERIAL PRIMARY KEY,
     nome VARCHAR(150) NOT NULL,
-    artista VARCHAR(100) NOT NULL
+    artista VARCHAR(100) NOT NULL,
+    album VARCHAR(150),
+    compositor VARCHAR(255),
+    ano_lancamento INT,
+    genero VARCHAR(50),
+    duracao INT
 );
 
 CREATE TABLE playlists (

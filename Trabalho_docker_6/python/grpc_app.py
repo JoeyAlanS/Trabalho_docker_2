@@ -10,7 +10,7 @@ class StreamingServicer(streaming_pb2_grpc.StreamingServiceServicer):
 
     def ListarMusicas(self, request, context):
         db = SessionLocal(); musicas = db.query(DbMusica).all(); db.close()
-        return streaming_pb2.MusicaList(musicas=[streaming_pb2.Musica(id=m.id, nome=m.nome, artista=m.artista) for m in musicas])
+        return streaming_pb2.MusicaList(musicas=[streaming_pb2.Musica(id=m.id, nome=m.nome, artista=m.artista, album=m.album or "", compositor=m.compositor or "", ano_lancamento=m.ano_lancamento or 0, genero=m.genero or "", duracao=m.duracao or 0) for m in musicas])
 
     def ListarPlaylistsUsuario(self, request, context):
         db = SessionLocal(); playlists = db.query(DbPlaylist).filter(DbPlaylist.usuario_id == request.id).all(); db.close()
@@ -18,7 +18,7 @@ class StreamingServicer(streaming_pb2_grpc.StreamingServiceServicer):
 
     def ListarMusicasPlaylist(self, request, context):
         db = SessionLocal(); p = db.query(DbPlaylist).filter(DbPlaylist.id == request.id).first(); musicas = p.musicas if p else []; db.close()
-        return streaming_pb2.MusicaList(musicas=[streaming_pb2.Musica(id=m.id, nome=m.nome, artista=m.artista) for m in musicas])
+        return streaming_pb2.MusicaList(musicas=[streaming_pb2.Musica(id=m.id, nome=m.nome, artista=m.artista, album=m.album or "", compositor=m.compositor or "", ano_lancamento=m.ano_lancamento or 0, genero=m.genero or "", duracao=m.duracao or 0) for m in musicas])
 
     def ListarPlaylistsPorMusica(self, request, context):
         db = SessionLocal(); playlists = db.query(DbPlaylist).join(playlist_musica).filter(playlist_musica.c.musica_id == request.id).all(); db.close()
@@ -35,12 +35,12 @@ class StreamingServicer(streaming_pb2_grpc.StreamingServiceServicer):
 
     def CriarMusica(self, request, context):
         db = SessionLocal()
-        nova = DbMusica(nome=request.nome, artista=request.artista)
+        nova = DbMusica(nome=request.nome, artista=request.artista, album=request.album or None, compositor=request.compositor or None, ano_lancamento=request.ano_lancamento or None, genero=request.genero or None, duracao=request.duracao or None)
         db.add(nova)
         db.commit()
         db.refresh(nova)
         db.close()
-        return streaming_pb2.Musica(id=nova.id, nome=nova.nome, artista=nova.artista)
+        return streaming_pb2.Musica(id=nova.id, nome=nova.nome, artista=nova.artista, album=nova.album or "", compositor=nova.compositor or "", ano_lancamento=nova.ano_lancamento or 0, genero=nova.genero or "", duracao=nova.duracao or 0)
 
     def CriarPlaylist(self, request, context):
         db = SessionLocal()
@@ -75,10 +75,15 @@ class StreamingServicer(streaming_pb2_grpc.StreamingServiceServicer):
         if m:
             m.nome = request.nome
             m.artista = request.artista
+            m.album = request.album or None
+            m.compositor = request.compositor or None
+            m.ano_lancamento = request.ano_lancamento or None
+            m.genero = request.genero or None
+            m.duracao = request.duracao or None
             db.commit()
             db.refresh(m)
         db.close()
-        return streaming_pb2.Musica(id=m.id, nome=m.nome, artista=m.artista)
+        return streaming_pb2.Musica(id=m.id, nome=m.nome, artista=m.artista, album=m.album or "", compositor=m.compositor or "", ano_lancamento=m.ano_lancamento or 0, genero=m.genero or "", duracao=m.duracao or 0)
 
     def DeletarMusica(self, request, context):
         db = SessionLocal()

@@ -8,7 +8,20 @@ fake = Faker()
 
 if db.query(Usuario).count() == 0:
     usuarios = [Usuario(nome=fake.name(), idade=random.randint(18, 65)) for _ in range(300)]
-    musicas = [Musica(nome=fake.catch_phrase(), artista=fake.name()) for _ in range(300)]
+    
+    generos = ["Rock", "Pop", "Hip-Hop", "Jazz", "Classical", "Electronic", "R&B", "Country", "Reggae", "Blues"]
+    
+    musicas = [
+        Musica(
+            nome=fake.catch_phrase(),
+            artista=fake.name(),
+            album=fake.word().title(),
+            compositor=fake.name(),
+            ano_lancamento=random.randint(1990, 2024),
+            genero=random.choice(generos),
+            duracao=random.randint(120, 360)  # 2-6 minutos em segundos
+        ) for _ in range(300)
+    ]
     db.add_all(usuarios)
     db.add_all(musicas)
     db.commit()

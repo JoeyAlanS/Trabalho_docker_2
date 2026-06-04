@@ -15,6 +15,11 @@ class MusicaGQL:
     id: int
     nome: str
     artista: str
+    album: str | None = None
+    compositor: str | None = None
+    ano_lancamento: int | None = None
+    genero: str | None = None
+    duracao: int | None = None
 
 @strawberry.type
 class PlaylistGQL:
@@ -36,7 +41,7 @@ class Query:
         db = SessionLocal()
         res = db.query(DbMusica).all()
         db.close()
-        return [MusicaGQL(id=m.id, nome=m.nome, artista=m.artista) for m in res]
+        return [MusicaGQL(id=m.id, nome=m.nome, artista=m.artista, album=m.album, compositor=m.compositor, ano_lancamento=m.ano_lancamento, genero=m.genero, duracao=m.duracao) for m in res]
 
     @strawberry.field
     def playlists_usuario(self, user_id: int) -> List[PlaylistGQL]:
@@ -51,7 +56,7 @@ class Query:
         p = db.query(DbPlaylist).filter(DbPlaylist.id == playlist_id).first()
         res = p.musicas if p else []
         db.close()
-        return [MusicaGQL(id=m.id, nome=m.nome, artista=m.artista) for m in res]
+        return [MusicaGQL(id=m.id, nome=m.nome, artista=m.artista, album=m.album, compositor=m.compositor, ano_lancamento=m.ano_lancamento, genero=m.genero, duracao=m.duracao) for m in res]
 
     @strawberry.field
     def playlists_por_musica(self, musica_id: int) -> List[PlaylistGQL]:
@@ -73,14 +78,14 @@ class Mutation:
         return UsuarioGQL(id=novo_usuario.id, nome=novo_usuario.nome, idade=novo_usuario.idade)
 
     @strawberry.field
-    def criar_musica(self, nome: str, artista: str) -> MusicaGQL:
+    def criar_musica(self, nome: str, artista: str, album: str = None, compositor: str = None, ano_lancamento: int = None, genero: str = None, duracao: int = None) -> MusicaGQL:
         db = SessionLocal()
-        nova_musica = DbMusica(nome=nome, artista=artista)
+        nova_musica = DbMusica(nome=nome, artista=artista, album=album, compositor=compositor, ano_lancamento=ano_lancamento, genero=genero, duracao=duracao)
         db.add(nova_musica)
         db.commit()
         db.refresh(nova_musica)
         db.close()
-        return MusicaGQL(id=nova_musica.id, nome=nova_musica.nome, artista=nova_musica.artista)
+        return MusicaGQL(id=nova_musica.id, nome=nova_musica.nome, artista=nova_musica.artista, album=nova_musica.album, compositor=nova_musica.compositor, ano_lancamento=nova_musica.ano_lancamento, genero=nova_musica.genero, duracao=nova_musica.duracao)
 
     @strawberry.field
     def criar_playlist(self, nome: str, usuario_id: int) -> PlaylistGQL:

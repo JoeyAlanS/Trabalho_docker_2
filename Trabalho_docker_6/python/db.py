@@ -23,6 +23,11 @@ class Musica(Base):
     id = Column(Integer, primary_key=True, index=True)
     nome = Column(String, nullable=False)
     artista = Column(String, nullable=False)
+    album = Column(String, nullable=True)
+    compositor = Column(String, nullable=True)
+    ano_lancamento = Column(Integer, nullable=True)
+    genero = Column(String, nullable=True)
+    duracao = Column(Integer, nullable=True)
 
 class Playlist(Base):
     __tablename__ = 'playlists'

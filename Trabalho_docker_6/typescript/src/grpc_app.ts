@@ -35,8 +35,8 @@ server.addService(streamingProto.StreamingService.service, {
     callback(null, novo);
   },
   CriarMusica: async (call: any, callback: any) => {
-    const { nome, artista } = call.request;
-    const nova = await prisma.musicas.create({ data: { nome, artista } });
+    const { nome, artista, album, compositor, ano_lancamento, genero, duracao } = call.request;
+    const nova = await prisma.musicas.create({ data: { nome, artista, album: album || null, compositor: compositor || null, ano_lancamento: ano_lancamento || null, genero: genero || null, duracao: duracao || null } });
     callback(null, nova);
   },
   CriarPlaylist: async (call: any, callback: any) => {
@@ -54,8 +54,8 @@ server.addService(streamingProto.StreamingService.service, {
     callback(null, {});
   },
   AtualizarMusica: async (call: any, callback: any) => {
-    const { id, nome, artista } = call.request;
-    const atualizada = await prisma.musicas.update({ where: { id }, data: { nome, artista } });
+    const { id, nome, artista, album, compositor, ano_lancamento, genero, duracao } = call.request;
+    const atualizada = await prisma.musicas.update({ where: { id }, data: { nome, artista, album: album || null, compositor: compositor || null, ano_lancamento: ano_lancamento || null, genero: genero || null, duracao: duracao || null } });
     callback(null, atualizada);
   },
   DeletarMusica: async (call: any, callback: any) => {

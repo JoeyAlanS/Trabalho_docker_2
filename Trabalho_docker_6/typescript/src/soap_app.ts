@@ -18,6 +18,11 @@ const wsdl = `
   <message name="CreateMusicaRequest">
     <part name="nome" type="xsd:string"/>
     <part name="artista" type="xsd:string"/>
+    <part name="album" type="xsd:string"/>
+    <part name="compositor" type="xsd:string"/>
+    <part name="ano_lancamento" type="xsd:int"/>
+    <part name="genero" type="xsd:string"/>
+    <part name="duracao" type="xsd:int"/>
   </message>
   <message name="CreatePlaylistRequest">
     <part name="nome" type="xsd:string"/>
@@ -32,6 +37,11 @@ const wsdl = `
     <part name="id" type="xsd:int"/>
     <part name="nome" type="xsd:string"/>
     <part name="artista" type="xsd:string"/>
+    <part name="album" type="xsd:string"/>
+    <part name="compositor" type="xsd:string"/>
+    <part name="ano_lancamento" type="xsd:int"/>
+    <part name="genero" type="xsd:string"/>
+    <part name="duracao" type="xsd:int"/>
   </message>
   <message name="UpdatePlaylistRequest">
     <part name="id" type="xsd:int"/>
@@ -92,7 +102,7 @@ const service = {
         callback({ return: JSON.stringify(res) });
       },
       criar_musica: async (args: any, callback: any) => {
-        const res = await prisma.musicas.create({ data: { nome: args.nome, artista: args.artista } });
+        const res = await prisma.musicas.create({ data: { nome: args.nome, artista: args.artista, album: args.album || null, compositor: args.compositor || null, ano_lancamento: args.ano_lancamento ? Number(args.ano_lancamento) : null, genero: args.genero || null, duracao: args.duracao ? Number(args.duracao) : null } });
         callback({ return: JSON.stringify(res) });
       },
       criar_playlist: async (args: any, callback: any) => {
@@ -113,7 +123,7 @@ const service = {
       atualizar_musica: async (args: any, callback: any) => {
         const res = await prisma.musicas.update({ 
             where: { id: Number(args.id) }, 
-            data: { nome: args.nome, artista: args.artista } 
+            data: { nome: args.nome, artista: args.artista, album: args.album || null, compositor: args.compositor || null, ano_lancamento: args.ano_lancamento ? Number(args.ano_lancamento) : null, genero: args.genero || null, duracao: args.duracao ? Number(args.duracao) : null } 
         });
         callback({ return: JSON.stringify(res) });
       },

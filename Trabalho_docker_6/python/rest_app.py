@@ -26,6 +26,11 @@ class UsuarioSchema(BaseModel):
 class MusicaSchema(BaseModel):
     nome: str
     artista: str
+    album: str = None
+    compositor: str = None
+    ano_lancamento: int = None
+    genero: str = None
+    duracao: int = None
 
 class PlaylistCreateSchema(BaseModel):
     nome: str
@@ -96,7 +101,15 @@ def get_song(musica_id: int, db: Session = Depends(get_db)):
 
 @app.post("/musicas", status_code=status.HTTP_201_CREATED)
 def criar_musica(song: MusicaSchema, db: Session = Depends(get_db)):
-    nova_musica = Musica(nome=song.nome, artista=song.artista)
+    nova_musica = Musica(
+        nome=song.nome, 
+        artista=song.artista,
+        album=song.album,
+        compositor=song.compositor,
+        ano_lancamento=song.ano_lancamento,
+        genero=song.genero,
+        duracao=song.duracao
+    )
     db.add(nova_musica)
     db.commit()
     db.refresh(nova_musica)
@@ -110,6 +123,11 @@ def atualizar_musica(musica_id: int, song: MusicaSchema, db: Session = Depends(g
     
     musica_db.nome = song.nome
     musica_db.artista = song.artista
+    musica_db.album = song.album
+    musica_db.compositor = song.compositor
+    musica_db.ano_lancamento = song.ano_lancamento
+    musica_db.genero = song.genero
+    musica_db.duracao = song.duracao
     db.commit()
     db.refresh(musica_db)
     return musica_db

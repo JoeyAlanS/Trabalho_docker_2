@@ -93,9 +93,9 @@ app.get('/musicas/:musica_id', async (req: Request, res: Response) => {
 
 // POST: Criar uma nova música
 app.post('/musicas', async (req: Request, res: Response) => {
-  const { nome, artista } = req.body;
+  const { nome, artista, album, compositor, ano_lancamento, genero, duracao } = req.body;
   const novaMusica = await prisma.musicas.create({
-    data: { nome, artista }
+    data: { nome, artista, album, compositor, ano_lancamento, genero, duracao }
   });
   res.status(201).json(novaMusica);
 });
@@ -103,12 +103,12 @@ app.post('/musicas', async (req: Request, res: Response) => {
 // PUT: Atualizar uma música existente
 app.put('/musicas/:musica_id', async (req: Request, res: Response) => {
   const { musica_id } = req.params;
-  const { nome, artista } = req.body;
+  const { nome, artista, album, compositor, ano_lancamento, genero, duracao } = req.body;
 
   try {
     const musicaAtualizada = await prisma.musicas.update({
       where: { id: Number(musica_id) },
-      data: { nome, artista }
+      data: { nome, artista, album, compositor, ano_lancamento, genero, duracao }
     });
     res.json(musicaAtualizada);
   } catch (error) {

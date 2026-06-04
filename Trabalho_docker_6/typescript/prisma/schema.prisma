@@ -18,6 +18,11 @@ model musicas {
   id      Int    @id @default(autoincrement())
   nome    String
   artista String
+  album   String?
+  compositor String?
+  ano_lancamento Int?
+  genero  String?
+  duracao Int?
   playlist_musica playlist_musica[]
 }
 

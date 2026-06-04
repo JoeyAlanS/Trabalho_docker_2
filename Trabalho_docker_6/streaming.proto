@@ -25,7 +25,7 @@ message IdRequest { int32 id = 1; }
 message Usuario { int32 id = 1; string nome = 2; int32 idade = 3; }
 message UsuarioList { repeated Usuario usuarios = 1; }
 
-message Musica { int32 id = 1; string nome = 2; string artista = 3; }
+message Musica { int32 id = 1; string nome = 2; string artista = 3; string album = 4; string compositor = 5; int32 ano_lancamento = 6; string genero = 7; int32 duracao = 8; }
 message MusicaList { repeated Musica musicas = 1; }
 
 message Playlist { int32 id = 1; string nome = 2; int32 usuario_id = 3; }
@@ -39,6 +39,11 @@ message CriarUsuarioRequest {
 message CriarMusicaRequest {
   string nome = 1;
   string artista = 2;
+  string album = 3;
+  string compositor = 4;
+  int32 ano_lancamento = 5;
+  string genero = 6;
+  int32 duracao = 7;
 }
 
 message CriarPlaylistRequest {
@@ -55,6 +60,11 @@ message AtualizarMusicaRequest {
   int32 id = 1;
   string nome = 2;
   string artista = 3;
+  string album = 4;
+  string compositor = 5;
+  int32 ano_lancamento = 6;
+  string genero = 7;
+  int32 duracao = 8;
 }
 message AtualizarPlaylistRequest {
   int32 id = 1;

@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 const typeDefs = gql`
   type Usuario { id: Int!, nome: String!, idade: Int }
-  type Musica { id: Int!, nome: String!, artista: String! }
+  type Musica { id: Int!, nome: String!, artista: String!, album: String, compositor: String, anoLancamento: Int, genero: String, duracao: Int }
   type Playlist { id: Int!, nome: String!, usuario_id: Int! }
 
   type Query {
@@ -18,11 +18,11 @@ const typeDefs = gql`
 
   type Mutation {
     criarUsuario(nome: String!, idade: Int!): Usuario
-    criarMusica(nome: String!, artista: String!): Musica
+    criarMusica(nome: String!, artista: String!, album: String, compositor: String, anoLancamento: Int, genero: String, duracao: Int): Musica
     criarPlaylist(nome: String!, usuario_id: Int!): Playlist
     atualizarUsuario(id: Int!, nome: String!, idade: Int!): Usuario
     deletarUsuario(id: Int!): Boolean
-    atualizarMusica(id: Int!, nome: String!, artista: String!): Musica
+    atualizarMusica(id: Int!, nome: String!, artista: String!, album: String, compositor: String, anoLancamento: Int, genero: String, duracao: Int): Musica
     deletarMusica(id: Int!): Boolean
     atualizarPlaylist(id: Int!, nome: String!, usuario_id: Int!): Playlist
     deletarPlaylist(id: Int!): Boolean
@@ -47,8 +47,8 @@ const resolvers = {
     criarUsuario: async (_: any, args: { nome: string, idade: number }) => {
       return await prisma.usuarios.create({ data: { nome: args.nome, idade: args.idade } });
     },
-    criarMusica: async (_: any, args: { nome: string, artista: string }) => {
-      return await prisma.musicas.create({ data: { nome: args.nome, artista: args.artista } });
+    criarMusica: async (_: any, args: { nome: string, artista: string, album?: string, compositor?: string, anoLancamento?: number, genero?: string, duracao?: number }) => {
+      return await prisma.musicas.create({ data: { nome: args.nome, artista: args.artista, album: args.album, compositor: args.compositor, ano_lancamento: args.anoLancamento, genero: args.genero, duracao: args.duracao } });
     },
     criarPlaylist: async (_: any, args: { nome: string, usuario_id: number }) => {
       return await prisma.playlists.create({ data: { nome: args.nome, usuario_id: args.usuario_id } });
@@ -60,8 +60,8 @@ const resolvers = {
       await prisma.usuarios.delete({ where: { id: args.id } });
       return true;
     },
-    atualizarMusica: async (_: any, args: { id: number, nome: string, artista: string }) => {
-      return await prisma.musicas.update({ where: { id: args.id }, data: { nome: args.nome, artista: args.artista } });
+    atualizarMusica: async (_: any, args: { id: number, nome: string, artista: string, album?: string, compositor?: string, anoLancamento?: number, genero?: string, duracao?: number }) => {
+      return await prisma.musicas.update({ where: { id: args.id }, data: { nome: args.nome, artista: args.artista, album: args.album, compositor: args.compositor, ano_lancamento: args.anoLancamento, genero: args.genero, duracao: args.duracao } });
     },
     deletarMusica: async (_: any, args: { id: number }) => {
       await prisma.musicas.delete({ where: { id: args.id } });

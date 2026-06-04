@@ -15,6 +15,11 @@ class SoapMusica(ComplexModel):
     id = Integer
     nome = Unicode
     artista = Unicode
+    album = Unicode(min_occurs=0)
+    compositor = Unicode(min_occurs=0)
+    ano_lancamento = Integer(min_occurs=0)
+    genero = Unicode(min_occurs=0)
+    duracao = Integer(min_occurs=0)
 
 class SoapPlaylist(ComplexModel): 
     id = Integer
@@ -33,7 +38,7 @@ class SOAPService(ServiceBase):
     def listar_musicas(ctx):
         db = SessionLocal()
         for m in db.query(DbMusica).all(): 
-            yield SoapMusica(id=m.id, nome=m.nome, artista=m.artista)
+            yield SoapMusica(id=m.id, nome=m.nome, artista=m.artista, album=m.album, compositor=m.compositor, ano_lancamento=m.ano_lancamento, genero=m.genero, duracao=m.duracao)
         db.close()
 
     @rpc(Integer, _returns=Iterable(SoapPlaylist))
@@ -49,7 +54,7 @@ class SOAPService(ServiceBase):
         p = db.query(DbPlaylist).filter(DbPlaylist.id == playlist_id).first()
         if p:
             for m in p.musicas: 
-                yield SoapMusica(id=m.id, nome=m.nome, artista=m.artista)
+                yield SoapMusica(id=m.id, nome=m.nome, artista=m.artista, album=m.album, compositor=m.compositor, ano_lancamento=m.ano_lancamento, genero=m.genero, duracao=m.duracao)
         db.close()
 
     @rpc(Integer, _returns=Iterable(SoapPlaylist))
@@ -69,15 +74,15 @@ class SOAPService(ServiceBase):
         db.close()
         return SoapUsuario(id=novo.id, nome=novo.nome, idade=novo.idade)
 
-    @rpc(Unicode, Unicode, _returns=SoapMusica)
-    def criar_musica(ctx, nome, artista):
+    @rpc(Unicode, Unicode, Unicode, Unicode, Integer, Unicode, Integer, _returns=SoapMusica)
+    def criar_musica(ctx, nome, artista, album, compositor, ano_lancamento, genero, duracao):
         db = SessionLocal()
-        nova = DbMusica(nome=nome, artista=artista)
+        nova = DbMusica(nome=nome, artista=artista, album=album, compositor=compositor, ano_lancamento=ano_lancamento, genero=genero, duracao=duracao)
         db.add(nova)
         db.commit()
         db.refresh(nova)
         db.close()
-        return SoapMusica(id=nova.id, nome=nova.nome, artista=nova.artista)
+        return SoapMusica(id=nova.id, nome=nova.nome, artista=nova.artista, album=nova.album, compositor=nova.compositor, ano_lancamento=nova.ano_lancamento, genero=nova.genero, duracao=nova.duracao)
 
     @rpc(Unicode, Integer, _returns=SoapPlaylist)
     def criar_playlist(ctx, nome, usuario_id):
