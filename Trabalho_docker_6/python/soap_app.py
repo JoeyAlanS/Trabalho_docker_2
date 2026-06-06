@@ -4,7 +4,13 @@ from spyne.server.wsgi import WsgiApplication
 from werkzeug.serving import run_simple
 from db import SessionLocal, Usuario as DbUser, Musica as DbMusica, Playlist as DbPlaylist, playlist_musica
 import logging
-logging.basicConfig(level=logging.DEBUG)
+
+# 1. Calar o logger base e o Spyne
+logging.basicConfig(level=logging.ERROR)
+
+# 2. Calar os logs de acesso do Werkzeug (ESSENCIAL PARA TESTE DE CARGA)
+werkzeug_log = logging.getLogger('werkzeug')
+werkzeug_log.setLevel(logging.ERROR)
 
 class SoapUsuario(ComplexModel): 
     id = Integer
@@ -157,4 +163,4 @@ class SOAPService(ServiceBase):
 application = Application([SOAPService], 'streaming.soap', in_protocol=Soap11(validator='lxml'), out_protocol=Soap11())
 
 if __name__ == '__main__':
-    run_simple('0.0.0.0', 8002, WsgiApplication(application))
+    run_simple('0.0.0.0', 8002, WsgiApplication(application), threaded=True)

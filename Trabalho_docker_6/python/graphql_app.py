@@ -1,7 +1,7 @@
 import strawberry
 from fastapi import FastAPI
 from strawberry.fastapi import GraphQLRouter
-from typing import List
+from typing import List, Optional
 from db import SessionLocal, Usuario as DbUser, Musica as DbMusica, Playlist as DbPlaylist, playlist_musica
 
 @strawberry.type
@@ -15,11 +15,11 @@ class MusicaGQL:
     id: int
     nome: str
     artista: str
-    album: str | None = None
-    compositor: str | None = None
-    ano_lancamento: int | None = None
-    genero: str | None = None
-    duracao: int | None = None
+    album: Optional[str] = None
+    compositor: Optional[str] = None
+    ano_lancamento: Optional[int] = None
+    genero: Optional[str] = None
+    duracao: Optional[int] = None
 
 @strawberry.type
 class PlaylistGQL:

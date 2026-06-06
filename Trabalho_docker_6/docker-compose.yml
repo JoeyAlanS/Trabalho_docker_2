@@ -87,7 +87,7 @@ services:
     build: 
       context: .
       dockerfile: python/Dockerfile
-    command: locust -f locustfile.py --host=http://rest_py:8000
+    command: locust -f locustfile.py
     ports: ["8089:8089"]
     depends_on: [rest_py, rest_ts] # Garante que só sobe depois de algumas APIs
     # VOLUME REMOVIDO PARA NÃO SOBREESCREVER OS ARQUIVOS COMPILADOS!

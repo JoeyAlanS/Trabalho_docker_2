@@ -20,79 +20,109 @@ HOST_GRPC_TS = "grpc_ts:50052"
 # 1. TESTE REST
 # ==========================================
 class Teste_1_REST(HttpUser):
-    wait_time = between(1, 2)
+    abstract = True  # Descomente esta linha para desativar o REST
+    wait_time = between(0.1, 0.5)
 
-    @task  #<--- Remova o '#' no início desta linha para ativar o REST
-    def rest(self):
+    #@task
+    def rest_python(self):
         self.client.get(f"{HOST_REST_PY}/musicas", name="1. REST (PY) - Músicas")
-        #self.client.get(f"{HOST_REST_TS}/musicas", name="1. REST (TS) - Músicas")
+
+    #@task
+    def rest_typescript(self):
+        self.client.get(f"{HOST_REST_TS}/musicas", name="1. REST (TS) - Músicas")
+
 
 # ==========================================
 # 2. TESTE GRAPHQL
 # ==========================================
 class Teste_2_GraphQL(HttpUser):
-    wait_time = between(1, 2)
+    abstract = True  # Comente esta linha para ATIVAR o GraphQL
+    wait_time = between(0.1, 0.5)
+    
+    payload = {"query": "query { musicas { id nome artista album compositor anoLancamento genero duracao } }"}
+    headers = {"Content-Type": "application/json", "Accept": "application/json"}
 
-    #@task  #<--- Remova o '#' no início desta linha para ativar o GraphQL
-    def graphql(self):
-        payload = {"query": "query { musicas { id nome artista album compositor anoLancamento genero duracao } }"}
-        headers = {"Content-Type": "application/json", "Accept": "application/json"}
-
-        with self.client.post(f"{HOST_GRAPHQL_PY}/graphql", json=payload, headers=headers, name="2. GraphQL (PY) - Músicas", catch_response=True) as res_py:
+    #@task
+    def graphql_python(self):
+        with self.client.post(f"{HOST_GRAPHQL_PY}/graphql", json=self.payload, headers=self.headers, name="2. GraphQL (PY) - Músicas", catch_response=True) as res_py:
             if res_py.status_code != 200:
                 res_py.failure(f"Erro PY {res_py.status_code}: {res_py.text}")
-                
-        with self.client.post(f"{HOST_GRAPHQL_TS}/", json=payload, headers=headers, name="2. GraphQL (TS) - Músicas", catch_response=True) as res_ts:
+            else:
+                try:
+                    json_data = res_py.json()
+                    if "errors" in json_data:
+                        res_py.failure(f"Erro GraphQL PY: {json_data['errors'][0]['message']}")
+                except Exception as e:
+                    res_py.failure(f"Erro JSON PY: {str(e)}")
+
+    #@task
+    def graphql_typescript(self):
+        with self.client.post(f"{HOST_GRAPHQL_TS}/graphql", json=self.payload, headers=self.headers, name="2. GraphQL (TS) - Músicas", catch_response=True) as res_ts:
             if res_ts.status_code != 200:
                 res_ts.failure(f"Erro TS {res_ts.status_code}: {res_ts.text}")
+            else:
+                try:
+                    json_data = res_ts.json()
+                    if "errors" in json_data:
+                        res_ts.failure(f"Erro GraphQL TS: {json_data['errors'][0]['message']}")
+                except Exception as e:
+                    res_ts.failure(f"Erro JSON TS: {str(e)}")
+
 
 # ==========================================
 # 3. TESTE SOAP
 # ==========================================
 class Teste_3_SOAP(HttpUser):
-    wait_time = between(1, 2)
+    # abstract = True # Deixe comentado para rodar o SOAP
+    wait_time = between(0.1, 0.5)
 
-    #@task  # <--- Este está ativo! O Locust rodará apenas o SOAP agora.
-    def soap(self):
-        # Python (Spyne)
-        body_py = """<?xml version="1.0" encoding="UTF-8"?>
+    #@task  
+    def soap_python(self):
+        body = """<?xml version="1.0" encoding="UTF-8"?>
         <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="streaming.soap">
            <soapenv:Header/>
            <soapenv:Body><tns:listar_musicas/></soapenv:Body>
         </soapenv:Envelope>"""
+        headers = {"Content-Type": "text/xml; charset=utf-8", "SOAPAction": '"listar_musicas"'}
         
-        # Correção do erro 500: aspas duplas adicionadas no SOAPAction
-        headers_py = {"Content-Type": "text/xml; charset=utf-8", "SOAPAction": '"listar_musicas"'}
-        
-        with self.client.post(f"{HOST_SOAP_PY}/", data=body_py, headers=headers_py, name="3. SOAP (PY) - Músicas", catch_response=True) as res_py:
-            if res_py.status_code != 200:
-                res_py.failure(f"Erro PY {res_py.status_code}: {res_py.text}")
+        with self.client.post(f"{HOST_SOAP_PY}/", data=body, headers=headers, name="3. SOAP (PY) - Músicas", catch_response=True) as res:
+            if res.status_code != 200:
+                res.failure(f"Erro PY HTTP {res.status_code}: {res.text}")
+            # Verificação relaxada para aceitar tanto <nome> do TS quanto <s0:nome> do PY
+            elif "nome" not in res.text:
+                res.failure(f"Falso Positivo PY! XML vazio ou quebrado: {res.text[:100]}...")
 
-        # TypeScript
-        body_ts = """<?xml version="1.0" encoding="UTF-8"?>
+    @task  
+    def soap_typescript(self):
+        body = """<?xml version="1.0" encoding="UTF-8"?>
         <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="http://streaming.soap">
            <soapenv:Header/>
            <soapenv:Body><tns:listar_musicas/></soapenv:Body>
         </soapenv:Envelope>"""
+        headers = {"Content-Type": "text/xml; charset=utf-8", "SOAPAction": '"listar_musicas"'}
         
-        headers_ts = {"Content-Type": "text/xml; charset=utf-8", "SOAPAction": '"listar_musicas"'}
-        
-        with self.client.post(f"{HOST_SOAP_TS}/", data=body_ts, headers=headers_ts, name="3. SOAP (TS) - Músicas", catch_response=True) as res_ts:
-            if res_ts.status_code != 200:
-                res_ts.failure(f"Erro TS {res_ts.status_code}: {res_ts.text}")
+        with self.client.post(f"{HOST_SOAP_TS}/", data=body, headers=headers, name="3. SOAP (TS) - Músicas", catch_response=True) as res:
+            if res.status_code != 200:
+                res.failure(f"Erro TS HTTP {res.status_code}: {res.text}")
+            elif "nome" not in res.text:
+                res.failure(f"Falso Positivo TS! XML vazio ou quebrado: {res.text[:100]}...")
 
 # ==========================================
 # 4. TESTE gRPC
 # ==========================================
 class Teste_4_gRPC(HttpUser):
-    wait_time = between(1, 2)
+    abstract = True  # Comente esta linha para ATIVAR o gRPC
+    wait_time = between(0.1, 0.5)
 
-    #@task  #<--- Remova o '#' no início desta linha para ativar o gRPC
-    def grpc_test(self):
-        self.disparar_grpc(HOST_GRPC_PY, "4. gRPC (PY)")
-        self.disparar_grpc(HOST_GRPC_TS, "4. gRPC (TS)")
+    #@task  
+    def grpc_python(self):
+        self._disparar_grpc(HOST_GRPC_PY, "4. gRPC (PY) - Músicas")
 
-    def disparar_grpc(self, host, name):
+    #@task  
+    def grpc_typescript(self):
+        self._disparar_grpc(HOST_GRPC_TS, "4. gRPC (TS) - Músicas")
+
+    def _disparar_grpc(self, host, name):
         start_time = time.time()
         try:
             with grpc.insecure_channel(host) as channel:
