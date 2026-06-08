@@ -1,6 +1,6 @@
 # Comparativo de APIs - Arquitetura de Microsserviços
 
-## Sobre o Projeto
+## 1. Sobre o Projeto
 
 Este projeto tem como objetivo avaliar, comparar e demonstrar o funcionamento de quatro paradigmas diferentes de comunicação de APIs: **REST, GraphQL, SOAP e gRPC**. Para garantir uma base de comparação justa e ampla, cada um desses paradigmas foi implementado em duas linguagens/ambientes distintos: **Python** e **TypeScript (Node.js)**.
 
@@ -8,48 +8,7 @@ O domínio da aplicação simula um serviço de streaming básico, gerenciando e
 
 ---
 
-## Estrutura do Projeto
-
-```
-Trabalho_docker_5/
-├── docker-compose.yml          # Orquestração de containers
-├── init.sql                    # Script inicial do banco de dados
-├── streaming.proto             # Definição de mensagens gRPC
-├── .gitignore                  # Configuração de versionamento
-├── README.md                   # Este arquivo
-│
-├── python/                     # Implementações em Python
-│   ├── Dockerfile              # Imagem Docker para APIs Python
-│   ├── requirements.txt         # Dependências Python (pip)
-│   ├── db.py                   # Utilitários de conexão com banco de dados
-│   ├── seed.py                 # Script para popular banco com dados iniciais
-│   ├── rest_app.py             # API REST (FastAPI)
-│   ├── graphql_app.py          # API GraphQL (Strawberry)
-│   ├── soap_app.py             # API SOAP (Spyne)
-│   ├── grpc_app.py             # API gRPC (grpcio)
-│   └── locustfile.py           # Testes de carga (Locust)
-│
-├── typescript/                 # Implementações em TypeScript
-│   ├── Dockerfile              # Imagem Docker para APIs TypeScript
-│   ├── package.json            # Dependências Node.js (npm)
-│   ├── tsconfig.json           # Configuração do TypeScript
-│   ├── prisma/
-│   │   └── schema.prisma       # Schema de banco de dados (Prisma ORM)
-│   └── src/
-│       ├── rest_app.ts         # API REST (Express)
-│       ├── graphql_app.ts      # API GraphQL (Apollo Server)
-│       ├── soap_app.ts         # API SOAP (módulo soap)
-│       └── grpc_app.ts         # API gRPC (@grpc/grpc-js)
-│
-└── data/                       # Pasta para dados (ex: banco SQLite se usado)
-    └── streaming.db            # Banco de dados SQLite (gerado, não versionado)
-```
-
----
-
-## Arquitetura e Tecnologias
-
-### Stack Tecnológico
+## 2. Arquitetura e Tecnologias
 
 - **Banco de Dados:** PostgreSQL 15 (com PgAdmin para interface gráfica)
 - **Python:** FastAPI (REST), Strawberry (GraphQL), Spyne (SOAP), grpcio (gRPC)
@@ -59,51 +18,22 @@ Trabalho_docker_5/
 
 ---
 
-## Como Executar o Projeto
+## 3. Como Executar o Projeto
 
-### Pré-requisitos
-
-Certifique-se de ter instalado:
-- **Docker** (v20.10+)
-- **Docker Compose** (v1.29+)
-
-### Passos para Inicialização
-
-1. Navegue até a pasta raiz do projeto (onde está o `docker-compose.yml`):
-
-```bash
-cd Trabalho_docker_6
-```
-
-2. Execute o comando de construção e inicialização:
-
-```bash
-docker-compose up -d --build
-```
-
-O parâmetro `-d` executa os containers em segundo plano. Aguarde a conclusão do download das imagens e a inicialização.
-
+1. Navegue até a pasta raiz do projeto.
+2. Execute o comando de construção e inicialização em segundo plano:
+   ```bash
+   docker-compose up -d --build
+   ```
 3. Popule o banco de dados com dados de teste:
-
-```bash
-docker-compose exec rest_py python seed.py
-```
-
-### Para Parar a Aplicação
-
-```bash
-docker-compose down
-```
-
-### Para Remover Volumes (Banco de Dados)
-
-```bash
-docker-compose down -v
-```
+   ```bash
+   docker-compose exec rest_py python seed.py
+   ```
+4. O painel do Locust para testes de carga estará disponível em `http://localhost:8089`.
 
 ---
 
-## Mapeamento de Serviços e Portas
+## 4. Mapeamento de Serviços e Portas
 
 | Serviço                     | Linguagem | Porta Local | Host Interno (Docker)      | Descrição |
 | ---------------------------- | --------- | ------------ | -------------------------- | --------- |
@@ -121,91 +51,51 @@ docker-compose down -v
 
 ---
 
-## Documentação dos Endpoints
+## 5. Documentação dos Endpoints (GET e POST)
 
 ### 1. APIs REST
 
 As APIs REST retornam dados em formato JSON. Podem ser acessadas pelo navegador, Postman, cURL ou qualquer cliente HTTP.
 
-#### Endpoints Base
-
 - **Python:** `http://localhost:8000`
 - **TypeScript:** `http://localhost:9000`
 
-#### Endpoints Principais
-
-```http
-GET /usuarios
-```
-Retorna lista de todos os usuários.
-
-**Response:**
-```json
-[
-  { "id": 1, "nome": "João", "idade": 30 },
-  { "id": 2, "nome": "Maria", "idade": 28 }
-]
-```
-
+**Exemplo de Leitura (GET):** Listar Músicas
 ```http
 GET /musicas
 ```
-Retorna lista de todas as músicas.
 
+**Exemplo de Criação (POST):** Criar Usuário
 ```http
-GET /playlists
-```
-Retorna lista de todas as playlists.
+POST /usuarios
+Content-Type: application/json
 
-```http
-GET /playlists/:id/musicas
+{
+  "nome": "João",
+  "idade": 30
+}
 ```
-Retorna músicas de uma playlist específica.
 
 ---
 
 ### 2. APIs GraphQL
 
-O GraphQL opera em um único endpoint, recebendo queries customizadas para retornar apenas os dados solicitados.
-
-#### Endpoints
+O GraphQL opera em um único endpoint utilizando requisições POST para trafegar a query.
 
 - **Python:** `POST http://localhost:8001/graphql`
 - **TypeScript:** `POST http://localhost:9001/`
 
-#### Exemplos de Queries
-
-**Listar Usuários:**
-```graphql
-query {
-  usuarios {
-    id
-    nome
-    idade
-  }
-}
-```
-
-**Listar Playlists com Músicas:**
-```graphql
-query {
-  playlists {
-    id
-    nome
-    usuarioId
-    musicas {
-      id
-      nome
-      artista
-    }
-  }
-}
-```
-
-**Payload JSON a enviar:**
+**Exemplo de Leitura (Query equivalente a GET):**
 ```json
 {
   "query": "query { usuarios { id nome idade } }"
+}
+```
+
+**Exemplo de Criação (Mutation equivalente a POST):**
+```json
+{
+  "query": "mutation { criarUsuario(nome: \"João\", idade: 30) { id nome } }"
 }
 ```
 
@@ -213,27 +103,18 @@ query {
 
 ### 3. APIs SOAP
 
-As APIs SOAP utilizam formato XML para comunicação e requerem cabeçalhos específicos.
-
-#### Endpoints
+As APIs SOAP utilizam requisições HTTP POST contendo um payload em formato XML (Envelope) e requerem cabeçalhos específicos.
 
 - **Python:** `POST http://localhost:8002/`
 - **TypeScript:** `POST http://localhost:9002/`
 
-#### Cabeçalhos Necessários
-
+**Exemplo de Leitura (equivalente a GET):** `listar_usuarios`
 ```http
 Content-Type: text/xml; charset=utf-8
 SOAPAction: "listar_usuarios"
-```
 
-#### Exemplo de Envelope SOAP
-
-```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<soapenv:Envelope
-    xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-    xmlns:tns="http://streaming.soap">
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="http://streaming.soap">
    <soapenv:Header/>
    <soapenv:Body>
       <tns:listar_usuarios/>
@@ -241,155 +122,129 @@ SOAPAction: "listar_usuarios"
 </soapenv:Envelope>
 ```
 
-#### Operações Disponíveis
+**Exemplo de Criação (equivalente a POST):** `criar_usuario`
+```http
+Content-Type: text/xml; charset=utf-8
+SOAPAction: "criar_usuario"
 
-- `listar_usuarios`
-- `listar_musicas`
-- `listar_playlists_usuario` (requer `usuario_id`)
-- `listar_musicas_playlist` (requer `playlist_id`)
+<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="http://streaming.soap">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <tns:criar_usuario>
+         <nome>João</nome>
+         <idade>30</idade>
+      </tns:criar_usuario>
+   </soapenv:Body>
+</soapenv:Envelope>
+```
 
 ---
 
 ### 4. APIs gRPC
 
-O gRPC utiliza HTTP/2 e Protocol Buffers para serialização binária. Não opera sobre HTTP/1.1 tradicional.
-
-#### Endpoints
+O gRPC utiliza HTTP/2 e Protocol Buffers para serialização binária. Diferente dos demais, não utiliza os verbos HTTP tradicionais de forma visível, operando com RPCs (Remote Procedure Calls).
 
 - **Python:** `localhost:50051`
 - **TypeScript:** `localhost:50052`
 
-#### Definição de Serviço (streaming.proto)
+Para testar ou invocar métodos, deve-se usar um cliente gRPC (ex: **BloomRPC**, **Postman**, **grpcurl**) carregando o arquivo `streaming.proto` do projeto.
 
-```protobuf
-service StreamingService {
-  rpc ListarUsuarios(Empty) returns (UsuarioList);
-  rpc ListarMusicas(Empty) returns (MusicaList);
-  rpc ListarPlaylistsUsuario(IdRequest) returns (PlaylistList);
-  rpc ListarMusicasPlaylist(IdRequest) returns (MusicaList);
-  rpc ListarPlaylistsPorMusica(IdRequest) returns (PlaylistList);
-}
-```
-
-#### Ferramentas Recomendadas para Testar
-
-- **BloomRPC** - Interface gráfica para gRPC
-- **Postman** (v9.7+) - Suporte experimental para gRPC
-- **grpcurl** - Cliente CLI para gRPC
-- **Insomnia** - Alternative com suporte gRPC
+**Exemplo de Leitura (RPC Empty -> List):** `ListarUsuarios`
+**Exemplo de Criação (RPC Request -> Response):** `CriarUsuario` enviando uma mensagem contendo `{ nome: "João", idade: 30 }`.
 
 ---
 
-## Testes de Desempenho (Locust)
+## 6. Resultados dos Testes de Carga (Cenários)
 
-O projeto inclui o Locust para testes de carga, permitindo analisar a performance, latência e taxa de erros de cada API.
+Os testes foram realizados utilizando a ferramenta Locust, focando na listagem de Músicas, com os dados extraídos das exportações CSV. Foram utilizados cenários com **900**, **1800** e **3600** usuários virtuais concorrentes.
 
-### Acesso ao Painel
+### 6.1. Cenários em Python
 
-```
-http://localhost:8089
-```
+| Paradigma | 900 Usuários (RPS / Mediana) | 1800 Usuários (RPS / Mediana) | 3600 Usuários (RPS / Mediana) |
+| --------- | ---------------------------- | ----------------------------- | ----------------------------- |
+| **REST**  | 5062 RPS / 410 ms            | 5188 RPS / 380 ms             | 5148 RPS / 390 ms             |
+| **SOAP**  | 1599 RPS / 2000 ms           | 1655 RPS / 1900 ms            | 1654 RPS / 1800 ms            |
+| **gRPC**  | 7052 RPS / 12 ms             | 7095 RPS / 12 ms              | 7206 RPS / 12 ms              |
+| **GraphQL**| 3282 RPS / 730 ms           | 3539 RPS / 630 ms             | 3572 RPS / 650 ms             |
 
-### Fluxo de Execução
+### 6.2. Cenários em TypeScript (Node.js)
 
-1. Abra o navegador em `http://localhost:8089`
-2. Configure:
-   - **Number of users:** total de usuários virtuais
-   - **Spawn rate:** usuários criados por segundo
-   - **Host:** deixe em branco (URLs já estão configuradas no `locustfile.py`)
-3. Clique em **Start swarming**
-4. Monitore as métricas em tempo real
-
-### Personalizando os Testes
-
-O arquivo `python/locustfile.py` define as requisições usando decorators `@task`. Para testar apenas endpoints específicos:
-
-```python
-# Descomente apenas os testes desejados
-@task
-def test_rest():
-    pass
-
-# @task
-# def test_graphql():
-#     pass
-```
-
-Reinicie o container do Locust após fazer alterações:
-
-```bash
-docker-compose restart locust
-```
+| Paradigma | 900 Usuários (RPS / Mediana) | 1800 Usuários (RPS / Mediana) | 3600 Usuários (RPS / Mediana) |
+| --------- | ---------------------------- | ----------------------------- | ----------------------------- |
+| **REST**  | 11790 RPS / 10 ms            | 11738 RPS / 10 ms             | 11780 RPS / 9 ms              |
+| **SOAP**  | 11565 RPS / 13 ms            | 10672 RPS / 23 ms             | 11659 RPS / 12 ms             |
+| **gRPC**  | 8190 RPS / 10 ms             | 8203 RPS / 10 ms              | 8253 RPS / 10 ms              |
+| **GraphQL**| 9515 RPS / 50 ms            | 9612 RPS / 50 ms              | 9389 RPS / 54 ms              |
 
 ---
 
-## Análise de Resultados
+## 7. Anomalia do SOAP em TypeScript
 
-### Comparativo Esperado
+Ao analisar os resultados, nota-se uma **anomalia significativa no desempenho do SOAP em TypeScript**, que apresentou taxas de requisições por segundo (RPS) altíssimas (~11.600 RPS) e latências extremamente baixas (mediana de ~12-13ms), superando até mesmo o gRPC em TypeScript (~8.200 RPS) e sendo vastly superior ao SOAP em Python (apenas ~1.600 RPS com 2000ms de latência).
 
-Com base na arquitetura, esperamos observar:
-
-#### Tempo de Resposta (Latência)
-
-| Paradigma | Python (ms) | TypeScript (ms) | Observações |
-| --------- | ----------- | --------------- | ----------- |
-| **REST**  | ~50         | ~40             | Mais rápido em consultas simples |
-| **GraphQL**| ~60        | ~45             | Overhead de validação do schema |
-| **SOAP**  | ~80         | ~70             | Parsing de XML adiciona latência |
-| **gRPC**  | ~30         | ~25             | Mais rápido (binário + HTTP/2) |
-
-#### Taxa de Transferência (Throughput)
-
-- **gRPC:** Melhor performance sob alta carga
-- **REST/GraphQL:** Performance similar
-- **SOAP:** Menor throughput
-
-#### Tamanho do Payload
-
-Para recuperar 100 usuários:
-
-| Formato | Tamanho (KB) |
-| ------- | ------------ |
-| REST (JSON) | ~2.5 |
-| GraphQL (JSON) | ~2.5 |
-| SOAP (XML) | ~8.0 |
-| gRPC (Protobuf) | ~0.8 |
-
-#### Consumo de Recursos
-
-- **CPU:** gRPC < REST < GraphQL < SOAP
-- **Memória:** Similares entre REST e GraphQL; SOAP consome mais
+**Explicação da Anomalia:**
+1. **Falso Positivo Resolvido:** Inicialmente, o Locust identificou falsos positivos nas respostas XML do TypeScript. Como os valores `null` do banco de dados causavam inconsistências no parse do WSDL pela biblioteca `soap` do Node, a API retornava respostas parciais ou inválidas, e isso passava com altíssima velocidade. O problema foi sanado aplicando uma transformação (limpeza de `null` para `undefined`), e mesmo assim, a alta performance se manteve devido à natureza não-bloqueante do Node.js.
+2. **Serialização e I/O Assíncrono:** Ao contrário da implementação em Python (que usa a biblioteca síncrona `spyne` e faz parse pesado do WSDL/XML de forma bloqueante), a biblioteca `soap` no Node.js cria a árvore de serialização JSON-para-XML de forma muito enxuta e aproveita a arquitetura orientada a eventos, tornando a resposta quase imediata.
+3. **Payload Gigante vs Processamento:** Embora o SOAP em TS trafegue o maior payload de todas as APIs (cerca de ~93KB por requisição comparado a ~54KB do REST), o gargalo geralmente é CPU (parse XML) e não a rede no ambiente Docker. O Node.js conseguiu construir e despachar esse XML muito mais rápido que o Python.
 
 ---
 
-## Análise Crítica e Testes de Carga
+## 8. Gráficos Comparativos
 
-Na implementação deste serviço de streaming (Usuários, Músicas, Playlists), observamos as seguintes nuances:
+Abaixo estão os gráficos extraídos das métricas coletadas pelo Locust.
 
-1.  **Desenvolvimento:** REST foi o mais rápido de prototipar. GraphQL exigiu a criação de schemas explícitos, mas facilitou consultas aninhadas (ex: Playlists e suas Músicas). gRPC exigiu a compilação prévia do arquivo `.proto`. SOAP exigiu uma biblioteca robusta (Spyne) e a tipagem estrita pode ser engessada.
-2.  **Testes de Carga (Locust):**
-    * **gRPC** apresenta a menor latência e maior Throughput sob alta carga devido à serialização binária (Protobuf) e multiplexação do HTTP/2.
-    * **REST e GraphQL** apresentam desempenho similar em chamadas simples, mas GraphQL sofre um leve overhead de validação do schema no servidor. Para consultas complexas que em REST exigiriam múltiplos GETs, GraphQL é muito superior.
-    * **SOAP** apresenta o pior desempenho sob carga máxima devido ao peso do payload XML e ao processamento de parse no servidor.
+### Resumo Executivo (Médias Gerais Lado a Lado)
+**Comparação de Throughput (Média de RPS)**
+![Comparação de Throughput (Média de RPS)](output_graphs/barras_rps.png)
+
+**Comparação de Latência (Média P95)**
+![Comparação de Latência (Média P95)](output_graphs/barras_p95.png)
+
+### 1. Python (REST vs SOAP vs gRPC vs GraphQL)
+**Tempo de Resposta (P95)**
+![Tempo de Resposta (P95)](output_graphs/python_p95.png)
+**Requisições por Segundo (RPS)**
+![Requisições por Segundo (RPS)](output_graphs/python_rps.png)
+**Mediana de Tempo de Resposta**
+![Mediana de Tempo de Resposta](output_graphs/python_mediana.png)
+
+### 2. TypeScript (REST vs SOAP vs gRPC vs GraphQL)
+**Tempo de Resposta (P95)**
+![Tempo de Resposta (P95)](output_graphs/typescript_p95.png)
+**Requisições por Segundo (RPS)**
+![Requisições por Segundo (RPS)](output_graphs/typescript_rps.png)
+**Mediana de Tempo de Resposta**
+![Mediana de Tempo de Resposta](output_graphs/typescript_mediana.png)
+
+### 3. REST (Python vs TypeScript)
+![Tempo de Resposta (P95)](output_graphs/rest_p95.png)
+![Requisições por Segundo (RPS)](output_graphs/rest_rps.png)
+
+### 4. SOAP (Python vs TypeScript)
+![Tempo de Resposta (P95)](output_graphs/soap_p95.png)
+![Requisições por Segundo (RPS)](output_graphs/soap_rps.png)
+
+### 5. gRPC (Python vs TypeScript)
+![Tempo de Resposta (P95)](output_graphs/grpc_p95.png)
+![Requisições por Segundo (RPS)](output_graphs/grpc_rps.png)
+
+### 6. GraphQL (Python vs TypeScript)
+![Tempo de Resposta (P95)](output_graphs/graphql_p95.png)
+![Requisições por Segundo (RPS)](output_graphs/graphql_rps.png)
+
+### 7. Visão Geral (Todos os Protocolos)
+![Tempo de Resposta (P95)](output_graphs/geral_p95.png)
+![Requisições por Segundo (RPS)](output_graphs/geral_rps.png)
+![Mediana de Tempo de Resposta](output_graphs/geral_mediana.png)
 
 ---
 
-## Banco de Dados
+## 9. Breve Resumo e Conclusões
 
-### Schema
+O experimento demonstra que não há uma "tecnologia absoluta", pois o desempenho está intimamente ligado à stack da linguagem de programação, à qualidade das bibliotecas escolhidas e ao tipo de I/O exigido.
 
-O banco é inicializado automaticamente com o arquivo `init.sql`:
-
-- **usuarios** - Usuários do sistema
-- **musicas** - Catálogo de músicas
-- **playlists** - Playlists de usuários
-- **playlist_musica** - Relação N-para-N entre playlists e músicas
-
-### Acesso ao PgAdmin
-
-- **URL:** `http://localhost:5050`
-- **Email:** `admin@admin.com`
-- **Senha:** `password`
-
----
-
+- **TypeScript (Node.js)** sobressaiu-se na vasta maioria dos cenários devido ao processamento assíncrono não-bloqueante orientado a eventos, entregando altíssimas taxas de Requisições Por Segundo (RPS). O REST e o SOAP em TS mantiveram performances na faixa das +11.000 requisições/segundo.
+- **Python** evidenciou que o gRPC é extremamente otimizado (alcançando ~7000 RPS com meros 12ms de latência), isolando as deficiências de bibliotecas de validação pesadas (como o `spyne` em SOAP ou o processo do FastAPI em alto volume concorrente no REST).
+- **GraphQL**, apesar de seu imenso poder em unificação e customização de consultas para o Front-end, impõe um overhead nítido no Servidor devido à resolução de schema, resultando em menor RPS quando comparado a respostas estáticas REST.
+- **O caso do gRPC**: É consistentemente rápido tanto no TypeScript quanto no Python, provando o quão potente é a serialização binária com Protocol Buffers sobre HTTP/2 para microsserviços críticos.
