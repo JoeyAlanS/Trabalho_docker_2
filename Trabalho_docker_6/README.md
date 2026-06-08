@@ -1,4 +1,7 @@
 # Comparativo de APIs - Arquitetura de Microsserviços
+# Grupo G
+**Aluno 1:** Joey Alan (Matricula: 2320416) 
+**Aluno 2:** Hector (Matricula: 2315024) 
 
 ## 1. Sobre o Projeto
 
