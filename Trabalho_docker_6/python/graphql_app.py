@@ -2,6 +2,7 @@ import strawberry
 from fastapi import FastAPI
 from strawberry.fastapi import GraphQLRouter
 from typing import List, Optional
+from sqlalchemy.future import select
 from db import SessionLocal, Usuario as DbUser, Musica as DbMusica, Playlist as DbPlaylist, playlist_musica
 
 @strawberry.type
@@ -30,132 +31,138 @@ class PlaylistGQL:
 @strawberry.type
 class Query:
     @strawberry.field
-    def usuarios(self) -> List[UsuarioGQL]:
-        db = SessionLocal()
-        res = db.query(DbUser).all()
-        db.close()
+    async def usuarios(self) -> List[UsuarioGQL]:
+        async with SessionLocal() as db:
+            result = await db.execute(select(DbUser))
+            res = result.scalars().all()
         return [UsuarioGQL(id=u.id, nome=u.nome, idade=u.idade) for u in res]
 
     @strawberry.field
-    def musicas(self) -> List[MusicaGQL]:
-        db = SessionLocal()
-        res = db.query(DbMusica).all()
-        db.close()
+    async def musicas(self) -> List[MusicaGQL]:
+        async with SessionLocal() as db:
+            result = await db.execute(select(DbMusica))
+            res = result.scalars().all()
         return [MusicaGQL(id=m.id, nome=m.nome, artista=m.artista, album=m.album, compositor=m.compositor, ano_lancamento=m.ano_lancamento, genero=m.genero, duracao=m.duracao) for m in res]
 
     @strawberry.field
-    def playlists_usuario(self, user_id: int) -> List[PlaylistGQL]:
-        db = SessionLocal()
-        res = db.query(DbPlaylist).filter(DbPlaylist.usuario_id == user_id).all()
-        db.close()
+    async def playlists_usuario(self, user_id: int) -> List[PlaylistGQL]:
+        async with SessionLocal() as db:
+            result = await db.execute(select(DbPlaylist).filter(DbPlaylist.usuario_id == user_id))
+            res = result.scalars().all()
         return [PlaylistGQL(id=p.id, nome=p.nome, usuario_id=p.usuario_id) for p in res]
 
     @strawberry.field
-    def musicas_playlist(self, playlist_id: int) -> List[MusicaGQL]:
-        db = SessionLocal()
-        p = db.query(DbPlaylist).filter(DbPlaylist.id == playlist_id).first()
-        res = p.musicas if p else []
-        db.close()
+    async def musicas_playlist(self, playlist_id: int) -> List[MusicaGQL]:
+        async with SessionLocal() as db:
+            result = await db.execute(select(DbPlaylist).filter(DbPlaylist.id == playlist_id))
+            p = result.scalars().first()
+            res = p.musicas if p else []
         return [MusicaGQL(id=m.id, nome=m.nome, artista=m.artista, album=m.album, compositor=m.compositor, ano_lancamento=m.ano_lancamento, genero=m.genero, duracao=m.duracao) for m in res]
 
     @strawberry.field
-    def playlists_por_musica(self, musica_id: int) -> List[PlaylistGQL]:
-        db = SessionLocal()
-        res = db.query(DbPlaylist).join(playlist_musica).filter(playlist_musica.c.musica_id == musica_id).all()
-        db.close()
+    async def playlists_por_musica(self, musica_id: int) -> List[PlaylistGQL]:
+        async with SessionLocal() as db:
+            result = await db.execute(select(DbPlaylist).join(playlist_musica).filter(playlist_musica.c.musica_id == musica_id))
+            res = result.scalars().all()
         return [PlaylistGQL(id=p.id, nome=p.nome, usuario_id=p.usuario_id) for p in res]
     
 @strawberry.type
 class Mutation:
     @strawberry.field
-    def criar_usuario(self, nome: str, idade: int) -> UsuarioGQL:
-        db = SessionLocal()
-        novo_usuario = DbUser(nome=nome, idade=idade)
-        db.add(novo_usuario)
-        db.commit()
-        db.refresh(novo_usuario)
-        db.close()
+    async def criar_usuario(self, nome: str, idade: int) -> UsuarioGQL:
+        async with SessionLocal() as db:
+            novo_usuario = DbUser(nome=nome, idade=idade)
+            db.add(novo_usuario)
+            await db.commit()
+            await db.refresh(novo_usuario)
         return UsuarioGQL(id=novo_usuario.id, nome=novo_usuario.nome, idade=novo_usuario.idade)
 
     @strawberry.field
-    def criar_musica(self, nome: str, artista: str, album: str = None, compositor: str = None, ano_lancamento: int = None, genero: str = None, duracao: int = None) -> MusicaGQL:
-        db = SessionLocal()
-        nova_musica = DbMusica(nome=nome, artista=artista, album=album, compositor=compositor, ano_lancamento=ano_lancamento, genero=genero, duracao=duracao)
-        db.add(nova_musica)
-        db.commit()
-        db.refresh(nova_musica)
-        db.close()
+    async def criar_musica(self, nome: str, artista: str, album: str = None, compositor: str = None, ano_lancamento: int = None, genero: str = None, duracao: int = None) -> MusicaGQL:
+        async with SessionLocal() as db:
+            nova_musica = DbMusica(nome=nome, artista=artista, album=album, compositor=compositor, ano_lancamento=ano_lancamento, genero=genero, duracao=duracao)
+            db.add(nova_musica)
+            await db.commit()
+            await db.refresh(nova_musica)
         return MusicaGQL(id=nova_musica.id, nome=nova_musica.nome, artista=nova_musica.artista, album=nova_musica.album, compositor=nova_musica.compositor, ano_lancamento=nova_musica.ano_lancamento, genero=nova_musica.genero, duracao=nova_musica.duracao)
 
     @strawberry.field
-    def criar_playlist(self, nome: str, usuario_id: int) -> PlaylistGQL:
-        db = SessionLocal()
-        nova_playlist = DbPlaylist(nome=nome, usuario_id=usuario_id)
-        db.add(nova_playlist)
-        db.commit()
-        db.refresh(nova_playlist)
-        db.close()
+    async def criar_playlist(self, nome: str, usuario_id: int) -> PlaylistGQL:
+        async with SessionLocal() as db:
+            nova_playlist = DbPlaylist(nome=nome, usuario_id=usuario_id)
+            db.add(nova_playlist)
+            await db.commit()
+            await db.refresh(nova_playlist)
         return PlaylistGQL(id=nova_playlist.id, nome=nova_playlist.nome, usuario_id=nova_playlist.usuario_id)
     
     @strawberry.field
-    def atualizar_usuario(self, id: int, nome: str, idade: int) -> UsuarioGQL:
-        db = SessionLocal()
-        u = db.query(DbUser).filter(DbUser.id == id).first()
-        if u:
-            u.nome = nome
-            u.idade = idade
-            db.commit()
-            db.refresh(u)
-        db.close()
+    async def atualizar_usuario(self, id: int, nome: str, idade: int) -> UsuarioGQL:
+        async with SessionLocal() as db:
+            result = await db.execute(select(DbUser).filter(DbUser.id == id))
+            u = result.scalars().first()
+            if u:
+                u.nome = nome
+                u.idade = idade
+                await db.commit()
+                await db.refresh(u)
         return UsuarioGQL(id=u.id, nome=u.nome, idade=u.idade)
 
     @strawberry.field
-    def deletar_usuario(self, id: int) -> bool:
-        db = SessionLocal()
-        linhas_afetadas = db.query(DbUser).filter(DbUser.id == id).delete()
-        db.commit()
-        db.close()
-        return linhas_afetadas > 0
+    async def deletar_usuario(self, id: int) -> bool:
+        async with SessionLocal() as db:
+            result = await db.execute(select(DbUser).filter(DbUser.id == id))
+            u = result.scalars().first()
+            if u:
+                await db.delete(u)
+                await db.commit()
+                return True
+        return False
 
     @strawberry.field
-    def atualizar_musica(self, id: int, nome: str, artista: str) -> MusicaGQL:
-        db = SessionLocal()
-        m = db.query(DbMusica).filter(DbMusica.id == id).first()
-        if m:
-            m.nome = nome
-            m.artista = artista
-            db.commit()
-            db.refresh(m)
-        db.close()
+    async def atualizar_musica(self, id: int, nome: str, artista: str) -> MusicaGQL:
+        async with SessionLocal() as db:
+            result = await db.execute(select(DbMusica).filter(DbMusica.id == id))
+            m = result.scalars().first()
+            if m:
+                m.nome = nome
+                m.artista = artista
+                await db.commit()
+                await db.refresh(m)
         return MusicaGQL(id=m.id, nome=m.nome, artista=m.artista)
 
     @strawberry.field
-    def deletar_musica(self, id: int) -> bool:
-        db = SessionLocal()
-        linhas_afetadas = db.query(DbMusica).filter(DbMusica.id == id).delete()
-        db.commit()
-        db.close()
-        return linhas_afetadas > 0
+    async def deletar_musica(self, id: int) -> bool:
+        async with SessionLocal() as db:
+            result = await db.execute(select(DbMusica).filter(DbMusica.id == id))
+            m = result.scalars().first()
+            if m:
+                await db.delete(m)
+                await db.commit()
+                return True
+        return False
 
     @strawberry.field
-    def atualizar_playlist(self, id: int, nome: str, usuario_id: int) -> PlaylistGQL:
-        db = SessionLocal()
-        p = db.query(DbPlaylist).filter(DbPlaylist.id == id).first()
-        if p:
-            p.nome = nome
-            p.usuario_id = usuario_id
-            db.commit()
-            db.refresh(p)
-        db.close()
+    async def atualizar_playlist(self, id: int, nome: str, usuario_id: int) -> PlaylistGQL:
+        async with SessionLocal() as db:
+            result = await db.execute(select(DbPlaylist).filter(DbPlaylist.id == id))
+            p = result.scalars().first()
+            if p:
+                p.nome = nome
+                p.usuario_id = usuario_id
+                await db.commit()
+                await db.refresh(p)
         return PlaylistGQL(id=p.id, nome=p.nome, usuario_id=p.usuario_id)
 
     @strawberry.field
-    def deletar_playlist(self, id: int) -> bool:
-        db = SessionLocal()
-        linhas_afetadas = db.query(DbPlaylist).filter(DbPlaylist.id == id).delete()
-        db.commit()
-        db.close()
-        return linhas_afetadas > 0
+    async def deletar_playlist(self, id: int) -> bool:
+        async with SessionLocal() as db:
+            result = await db.execute(select(DbPlaylist).filter(DbPlaylist.id == id))
+            p = result.scalars().first()
+            if p:
+                await db.delete(p)
+                await db.commit()
+                return True
+        return False
 
 schema = strawberry.Schema(query=Query, mutation=Mutation)
 app = FastAPI()

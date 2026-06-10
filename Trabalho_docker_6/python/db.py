@@ -1,10 +1,23 @@
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Table
+from sqlalchemy import Column, Integer, String, ForeignKey, Table
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 
 Base = declarative_base()
-DATABASE_URL = "postgresql://admin:password@db:5432/streaming_db"
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# 1. URL atualizada para usar o driver assíncrono (asyncpg)
+DATABASE_URL = "postgresql+asyncpg://admin:password@db:5432/streaming_db"
+
+# 2. Criação do motor assíncrono
+engine = create_async_engine(DATABASE_URL, echo=False, future=True)
+
+# 3. Configuração da sessão assíncrona
+SessionLocal = sessionmaker(
+    bind=engine,
+    class_=AsyncSession,
+    autocommit=False,
+    autoflush=False,
+    expire_on_commit=False
+)
 
 playlist_musica = Table(
     'playlist_musica', Base.metadata,
@@ -35,4 +48,5 @@ class Playlist(Base):
     nome = Column(String, nullable=False)
     usuario_id = Column(Integer, ForeignKey('usuarios.id', ondelete="CASCADE"))
     
-    musicas = relationship("Musica", secondary=playlist_musica)
+    # 4. Adicionado lazy="selectin" para permitir carregamento assíncrono seguro
+    musicas = relationship("Musica", secondary=playlist_musica, lazy="selectin")

@@ -7,15 +7,15 @@ Abaixo estão os gráficos comparativos considerando a **Quantidade de Usuários
 ### Comparação de Throughput (Média de RPS)
 ![Comparação de Throughput (Média de RPS)](barras_rps.png)
 
-### Comparação de Latência (Média P95)
-![Comparação de Latência (Média P95)](barras_p95.png)
+### Comparação de Latência (Média P90)
+![Comparação de Latência (Média P90)](barras_p90.png)
 
 ---
 
 ## 1. Python (REST vs SOAP vs gRPC vs GraphQL)
 
-### Tempo de Resposta (P95)
-![Tempo de Resposta (P95)](python_p95.png)
+### Tempo de Resposta (P90)
+![Tempo de Resposta (P90)](python_p90.png)
 
 ### Requisições por Segundo (RPS)
 ![Requisições por Segundo (RPS)](python_rps.png)
@@ -27,8 +27,8 @@ Abaixo estão os gráficos comparativos considerando a **Quantidade de Usuários
 
 ## 2. TypeScript (REST vs SOAP vs gRPC vs GraphQL)
 
-### Tempo de Resposta (P95)
-![Tempo de Resposta (P95)](typescript_p95.png)
+### Tempo de Resposta (P90)
+![Tempo de Resposta (P90)](typescript_p90.png)
 
 ### Requisições por Segundo (RPS)
 ![Requisições por Segundo (RPS)](typescript_rps.png)
@@ -40,8 +40,8 @@ Abaixo estão os gráficos comparativos considerando a **Quantidade de Usuários
 
 ## 3. REST (Python vs TypeScript)
 
-### Tempo de Resposta (P95)
-![Tempo de Resposta (P95)](rest_p95.png)
+### Tempo de Resposta (P90)
+![Tempo de Resposta (P90)](rest_p90.png)
 
 ### Requisições por Segundo (RPS)
 ![Requisições por Segundo (RPS)](rest_rps.png)
@@ -50,8 +50,8 @@ Abaixo estão os gráficos comparativos considerando a **Quantidade de Usuários
 
 ## 4. SOAP (Python vs TypeScript)
 
-### Tempo de Resposta (P95)
-![Tempo de Resposta (P95)](soap_p95.png)
+### Tempo de Resposta (P90)
+![Tempo de Resposta (P90)](soap_p90.png)
 
 ### Requisições por Segundo (RPS)
 ![Requisições por Segundo (RPS)](soap_rps.png)
@@ -60,8 +60,8 @@ Abaixo estão os gráficos comparativos considerando a **Quantidade de Usuários
 
 ## 5. gRPC (Python vs TypeScript)
 
-### Tempo de Resposta (P95)
-![Tempo de Resposta (P95)](grpc_p95.png)
+### Tempo de Resposta (P90)
+![Tempo de Resposta (P90)](grpc_p90.png)
 
 ### Requisições por Segundo (RPS)
 ![Requisições por Segundo (RPS)](grpc_rps.png)
@@ -70,8 +70,8 @@ Abaixo estão os gráficos comparativos considerando a **Quantidade de Usuários
 
 ## 6. GraphQL (Python vs TypeScript)
 
-### Tempo de Resposta (P95)
-![Tempo de Resposta (P95)](graphql_p95.png)
+### Tempo de Resposta (P90)
+![Tempo de Resposta (P90)](graphql_p90.png)
 
 ### Requisições por Segundo (RPS)
 ![Requisições por Segundo (RPS)](graphql_rps.png)
@@ -80,8 +80,8 @@ Abaixo estão os gráficos comparativos considerando a **Quantidade de Usuários
 
 ## 7. Visão Geral em Linha (Todos os Protocolos e Linguagens)
 
-### Tempo de Resposta (P95)
-![Tempo de Resposta (P95)](geral_p95.png)
+### Tempo de Resposta (P90)
+![Tempo de Resposta (P90)](geral_p90.png)
 
 ### Requisições por Segundo (RPS) - Comparação Geral
 ![Requisições por Segundo (RPS) - Comparação Geral](geral_rps.png)

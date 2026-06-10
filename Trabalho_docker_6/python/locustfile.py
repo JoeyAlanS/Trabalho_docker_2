@@ -25,11 +25,21 @@ class Teste_1_REST(HttpUser):
 
     #@task
     def rest_python(self):
-        self.client.get(f"{HOST_REST_PY}/musicas", name="1. REST (PY) - Músicas")
+        with self.client.get(f"{HOST_REST_PY}/musicas", name="1. REST (PY) - Músicas", catch_response=True) as res:
+            if res.status_code == 200:
+                res.success()
+                res.request_meta["response_length"] = len(res.content)
+            else:
+                res.failure(f"Erro PY HTTP {res.status_code}")
 
     #@task
     def rest_typescript(self):
-        self.client.get(f"{HOST_REST_TS}/musicas", name="1. REST (TS) - Músicas")
+        with self.client.get(f"{HOST_REST_TS}/musicas", name="1. REST (TS) - Músicas", catch_response=True) as res:
+            if res.status_code == 200:
+                res.success()
+                res.request_meta["response_length"] = len(res.content)
+            else:
+                res.failure(f"Erro TS HTTP {res.status_code}")
 
 
 # ==========================================
@@ -42,7 +52,7 @@ class Teste_2_GraphQL(HttpUser):
     payload = {"query": "query { musicas { id nome artista album compositor anoLancamento genero duracao } }"}
     headers = {"Content-Type": "application/json", "Accept": "application/json"}
 
-    #@task
+    @task
     def graphql_python(self):
         with self.client.post(f"{HOST_GRAPHQL_PY}/graphql", json=self.payload, headers=self.headers, name="2. GraphQL (PY) - Músicas", catch_response=True) as res_py:
             if res_py.status_code != 200:
@@ -52,6 +62,9 @@ class Teste_2_GraphQL(HttpUser):
                     json_data = res_py.json()
                     if "errors" in json_data:
                         res_py.failure(f"Erro GraphQL PY: {json_data['errors'][0]['message']}")
+                    else:
+                        res_py.success()
+                        res_py.request_meta["response_length"] = len(res_py.content)
                 except Exception as e:
                     res_py.failure(f"Erro JSON PY: {str(e)}")
 
@@ -65,6 +78,9 @@ class Teste_2_GraphQL(HttpUser):
                     json_data = res_ts.json()
                     if "errors" in json_data:
                         res_ts.failure(f"Erro GraphQL TS: {json_data['errors'][0]['message']}")
+                    else:
+                        res_ts.success()
+                        res_ts.request_meta["response_length"] = len(res_ts.content)
                 except Exception as e:
                     res_ts.failure(f"Erro JSON TS: {str(e)}")
 
@@ -73,7 +89,7 @@ class Teste_2_GraphQL(HttpUser):
 # 3. TESTE SOAP
 # ==========================================
 class Teste_3_SOAP(HttpUser):
-    # abstract = True # Deixe comentado para rodar o SOAP
+    abstract = True # Deixe comentado para rodar o SOAP
     wait_time = between(0.1, 0.5)
 
     #@task  
@@ -91,8 +107,11 @@ class Teste_3_SOAP(HttpUser):
             # Verificação relaxada para aceitar tanto <nome> do TS quanto <s0:nome> do PY
             elif "nome" not in res.text:
                 res.failure(f"Falso Positivo PY! XML vazio ou quebrado: {res.text[:100]}...")
+            else:
+                res.success()
+                res.request_meta["response_length"] = len(res.content)
 
-    @task  
+    #@task  
     def soap_typescript(self):
         body = """<?xml version="1.0" encoding="UTF-8"?>
         <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="http://streaming.soap">
@@ -106,19 +125,22 @@ class Teste_3_SOAP(HttpUser):
                 res.failure(f"Erro TS HTTP {res.status_code}: {res.text}")
             elif "nome" not in res.text:
                 res.failure(f"Falso Positivo TS! XML vazio ou quebrado: {res.text[:100]}...")
+            else:
+                res.success()
+                res.request_meta["response_length"] = len(res.content)
 
 # ==========================================
 # 4. TESTE gRPC
 # ==========================================
 class Teste_4_gRPC(HttpUser):
-    abstract = True  # Comente esta linha para ATIVAR o gRPC
+    #abstract = True  # Comente esta linha para ATIVAR o gRPC
     wait_time = between(0.1, 0.5)
 
     #@task  
     def grpc_python(self):
         self._disparar_grpc(HOST_GRPC_PY, "4. gRPC (PY) - Músicas")
 
-    #@task  
+    @task  
     def grpc_typescript(self):
         self._disparar_grpc(HOST_GRPC_TS, "4. gRPC (TS) - Músicas")
 
@@ -128,6 +150,20 @@ class Teste_4_gRPC(HttpUser):
             with grpc.insecure_channel(host) as channel:
                 stub = streaming_pb2_grpc.StreamingServiceStub(channel)
                 response = stub.ListarMusicas(streaming_pb2.Empty())
-            events.request.fire(request_type="gRPC", name=name, response_time=int((time.time() - start_time)*1000), response_length=0, exception=None)
+                tamanho_bytes = response.ByteSize()
+            
+            events.request.fire(
+                request_type="gRPC", 
+                name=name, 
+                response_time=int((time.time() - start_time)*1000), 
+                response_length=tamanho_bytes, 
+                exception=None
+            )
         except Exception as e:
-            events.request.fire(request_type="gRPC", name=name, response_time=int((time.time() - start_time)*1000), response_length=0, exception=e)
+            events.request.fire(
+                request_type="gRPC", 
+                name=name, 
+                response_time=int((time.time() - start_time)*1000), 
+                response_length=0, 
+                exception=e
+            )

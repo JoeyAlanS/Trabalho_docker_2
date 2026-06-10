@@ -160,31 +160,31 @@ Para testar ou invocar métodos, deve-se usar um cliente gRPC (ex: **BloomRPC**,
 
 ## 6. Resultados dos Testes de Carga (Cenários)
 
-Os testes foram realizados utilizando a ferramenta Locust, focando na listagem de Músicas, com os dados extraídos das exportações CSV. Foram utilizados cenários com **900**, **1800** e **3600** usuários virtuais concorrentes.
+Os testes foram realizados utilizando a ferramenta Locust, focando na listagem de Músicas, com os dados extraídos das exportações CSV. Foram utilizados cenários com **100**, **200** e **400** usuários virtuais concorrentes.
 
 ### 6.1. Cenários em Python
 
-| Paradigma | 900 Usuários (RPS / Mediana) | 1800 Usuários (RPS / Mediana) | 3600 Usuários (RPS / Mediana) |
+| Paradigma | 100 Usuários (RPS / Mediana) | 200 Usuários (RPS / Mediana) | 400 Usuários (RPS / Mediana) |
 | --------- | ---------------------------- | ----------------------------- | ----------------------------- |
-| **REST**  | 5062 RPS / 410 ms            | 5188 RPS / 380 ms             | 5148 RPS / 390 ms             |
-| **SOAP**  | 1599 RPS / 2000 ms           | 1655 RPS / 1900 ms            | 1654 RPS / 1800 ms            |
-| **gRPC**  | 7052 RPS / 12 ms             | 7095 RPS / 12 ms              | 7206 RPS / 12 ms              |
-| **GraphQL**| 3282 RPS / 730 ms           | 3539 RPS / 630 ms             | 3572 RPS / 650 ms             |
+| **REST**  | 318 RPS / 10 ms              | 584 RPS / 31 ms               | 621 RPS / 320 ms              |
+| **SOAP**  | 16 RPS / 1800 ms             | 17 RPS / 6700 ms              | 22 RPS / 17000 ms             |
+| **gRPC**  | 83 RPS / 10 ms               | 83 RPS / 10 ms                | 83 RPS / 10 ms                |
+| **GraphQL**| 33 RPS / 2600 ms            | 32 RPS / 5600 ms              | 33 RPS / 11000 ms             |
 
 ### 6.2. Cenários em TypeScript (Node.js)
 
-| Paradigma | 900 Usuários (RPS / Mediana) | 1800 Usuários (RPS / Mediana) | 3600 Usuários (RPS / Mediana) |
+| Paradigma | 100 Usuários (RPS / Mediana) | 200 Usuários (RPS / Mediana) | 400 Usuários (RPS / Mediana) |
 | --------- | ---------------------------- | ----------------------------- | ----------------------------- |
-| **REST**  | 11790 RPS / 10 ms            | 11738 RPS / 10 ms             | 11780 RPS / 9 ms              |
-| **SOAP**  | 11565 RPS / 13 ms            | 10672 RPS / 23 ms             | 11659 RPS / 12 ms             |
-| **gRPC**  | 8190 RPS / 10 ms             | 8203 RPS / 10 ms              | 8253 RPS / 10 ms              |
-| **GraphQL**| 9515 RPS / 50 ms            | 9612 RPS / 50 ms              | 9389 RPS / 54 ms              |
+| **REST**  | 319 RPS / 10 ms              | 579 RPS / 33 ms               | 620 RPS / 320 ms              |
+| **SOAP**  | 164 RPS / 290 ms             | 162 RPS / 910 ms              | 167 RPS / 2000 ms             |
+| **gRPC**  | 95 RPS / 9 ms                | 97 RPS / 9 ms                 | 96 RPS / 9 ms                 |
+| **GraphQL**| 131 RPS / 450 ms            | 129 RPS / 1200 ms             | 130 RPS / 2700 ms             |
 
 ---
 
 ## 7. Anomalia do SOAP em TypeScript
 
-Ao analisar os resultados, nota-se uma **anomalia significativa no desempenho do SOAP em TypeScript**, que apresentou taxas de requisições por segundo (RPS) altíssimas (~11.600 RPS) e latências extremamente baixas (mediana de ~12-13ms), superando até mesmo o gRPC em TypeScript (~8.200 RPS) e sendo vastly superior ao SOAP em Python (apenas ~1.600 RPS com 2000ms de latência).
+Ao analisar os resultados, nota-se uma **anomalia significativa no desempenho do SOAP em TypeScript**, que apresentou taxas de requisições por segundo (RPS) excelentes (~164-167 RPS) e latências sob controle (mediana de ~290ms a 2000ms), superando inclusive a implementação de gRPC em TypeScript/Python e sendo amplamente superior ao SOAP em Python (apenas ~16-22 RPS com medianas muito altas de 1800ms a 17000ms).
 
 **Explicação da Anomalia:**
 1. **Falso Positivo Resolvido:** Inicialmente, o Locust identificou falsos positivos nas respostas XML do TypeScript. Como os valores `null` do banco de dados causavam inconsistências no parse do WSDL pela biblioteca `soap` do Node, a API retornava respostas parciais ou inválidas, e isso passava com altíssima velocidade. O problema foi sanado aplicando uma transformação (limpeza de `null` para `undefined`), e mesmo assim, a alta performance se manteve devido à natureza não-bloqueante do Node.js.
@@ -201,43 +201,43 @@ Abaixo estão os gráficos extraídos das métricas coletadas pelo Locust.
 **Comparação de Throughput (Média de RPS)**
 ![Comparação de Throughput (Média de RPS)](output_graphs/barras_rps.png)
 
-**Comparação de Latência (Média P95)**
-![Comparação de Latência (Média P95)](output_graphs/barras_p95.png)
+**Comparação de Latência (Média P90)**
+![Comparação de Latência (Média P90)](output_graphs/barras_p90.png)
 
 ### 1. Python (REST vs SOAP vs gRPC vs GraphQL)
-**Tempo de Resposta (P95)**
-![Tempo de Resposta (P95)](output_graphs/python_p95.png)
+**Tempo de Resposta (P90)**
+![Tempo de Resposta (P90)](output_graphs/python_p90.png)
 **Requisições por Segundo (RPS)**
 ![Requisições por Segundo (RPS)](output_graphs/python_rps.png)
 **Mediana de Tempo de Resposta**
 ![Mediana de Tempo de Resposta](output_graphs/python_mediana.png)
 
 ### 2. TypeScript (REST vs SOAP vs gRPC vs GraphQL)
-**Tempo de Resposta (P95)**
-![Tempo de Resposta (P95)](output_graphs/typescript_p95.png)
+**Tempo de Resposta (P90)**
+![Tempo de Resposta (P90)](output_graphs/typescript_p90.png)
 **Requisições por Segundo (RPS)**
 ![Requisições por Segundo (RPS)](output_graphs/typescript_rps.png)
 **Mediana de Tempo de Resposta**
 ![Mediana de Tempo de Resposta](output_graphs/typescript_mediana.png)
 
 ### 3. REST (Python vs TypeScript)
-![Tempo de Resposta (P95)](output_graphs/rest_p95.png)
+![Tempo de Resposta (P90)](output_graphs/rest_p90.png)
 ![Requisições por Segundo (RPS)](output_graphs/rest_rps.png)
 
 ### 4. SOAP (Python vs TypeScript)
-![Tempo de Resposta (P95)](output_graphs/soap_p95.png)
+![Tempo de Resposta (P90)](output_graphs/soap_p90.png)
 ![Requisições por Segundo (RPS)](output_graphs/soap_rps.png)
 
 ### 5. gRPC (Python vs TypeScript)
-![Tempo de Resposta (P95)](output_graphs/grpc_p95.png)
+![Tempo de Resposta (P90)](output_graphs/grpc_p90.png)
 ![Requisições por Segundo (RPS)](output_graphs/grpc_rps.png)
 
 ### 6. GraphQL (Python vs TypeScript)
-![Tempo de Resposta (P95)](output_graphs/graphql_p95.png)
+![Tempo de Resposta (P90)](output_graphs/graphql_p90.png)
 ![Requisições por Segundo (RPS)](output_graphs/graphql_rps.png)
 
 ### 7. Visão Geral (Todos os Protocolos)
-![Tempo de Resposta (P95)](output_graphs/geral_p95.png)
+![Tempo de Resposta (P90)](output_graphs/geral_p90.png)
 ![Requisições por Segundo (RPS)](output_graphs/geral_rps.png)
 ![Mediana de Tempo de Resposta](output_graphs/geral_mediana.png)
 
@@ -247,7 +247,8 @@ Abaixo estão os gráficos extraídos das métricas coletadas pelo Locust.
 
 O experimento demonstra que não há uma "tecnologia absoluta", pois o desempenho está intimamente ligado à stack da linguagem de programação, à qualidade das bibliotecas escolhidas e ao tipo de I/O exigido.
 
-- **TypeScript (Node.js)** sobressaiu-se na vasta maioria dos cenários devido ao processamento assíncrono não-bloqueante orientado a eventos, entregando altíssimas taxas de Requisições Por Segundo (RPS). O REST e o SOAP em TS mantiveram performances na faixa das +11.000 requisições/segundo.
-- **Python** evidenciou que o gRPC é extremamente otimizado (alcançando ~7000 RPS com meros 12ms de latência), isolando as deficiências de bibliotecas de validação pesadas (como o `spyne` em SOAP ou o processo do FastAPI em alto volume concorrente no REST).
-- **GraphQL**, apesar de seu imenso poder em unificação e customização de consultas para o Front-end, impõe um overhead nítido no Servidor devido à resolução de schema, resultando em menor RPS quando comparado a respostas estáticas REST.
-- **O caso do gRPC**: É consistentemente rápido tanto no TypeScript quanto no Python, provando o quão potente é a serialização binária com Protocol Buffers sobre HTTP/2 para microsserviços críticos.
+- **TypeScript (Node.js)** sobressaiu-se na maioria dos cenários de alta complexidade (como SOAP e GraphQL) devido ao processamento assíncrono não-bloqueante orientado a eventos. O SOAP em TS manteve performance superior a 160 RPS, enquanto a versão Python teve dificuldades acima de 16 RPS.
+- **Python** gRPC mostrou consistência de latência (10ms estáveis), demonstrando que o gRPC é extremamente otimizado com Protocol Buffers no ecossistema Python.
+- **REST** obteve resultados de taxa de transferência (RPS) muito próximos entre as duas linguagens, mas apresentou alta latência sob estresse com 400 usuários (mediana de 320ms).
+- **GraphQL**, apesar de seu imenso poder em unificação e customização de consultas para o Front-end, impõe um overhead nítido de parse e validação de schema no Servidor, resultando em menor RPS que o REST (com TypeScript mantendo ~130 RPS vs Python com ~33 RPS).
+- **O caso do gRPC**: É extremamente estável em ambos ambientes, com latências baixíssimas (na casa de 9-10ms) e sem degradação à medida que o volume de usuários aumenta de 100 para 400.

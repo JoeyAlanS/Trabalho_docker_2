@@ -7,6 +7,6 @@ spyne==2.14.0
 lxml==4.9.3
 werkzeug==2.3.7
 sqlalchemy==2.0.20
-psycopg2-binary==2.9.9
+asyncpg==0.28.0
 locust==2.16.1
 Faker==19.6.0

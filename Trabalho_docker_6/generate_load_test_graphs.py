@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import os
 from pathlib import Path
 
@@ -16,90 +17,84 @@ Path(OUTPUT_DIR).mkdir(exist_ok=True)
 
 
 # ============================================================================
-# DADOS — SUBSTITUA APÓS CADA BATERIA DE TESTES
+# CARREGAMENTO DINÂMICO DOS DADOS DOS ARQUIVOS CSV
 # ============================================================================
 
+def load_scenario_from_csv(lang: str, tech: str) -> dict:
+    """Carrega dados de teste de carga de arquivos CSV para uma linguagem e tecnologia específicas."""
+    tech_folder = "graphQL" if tech.lower() == "graphql" else tech
+    tech_name = "GraphQL" if tech.lower() == "graphql" else tech
+    
+    csv_dir = Path("csv") / lang.lower() / tech_folder
+    
+    dados = []
+    if csv_dir.exists():
+        csv_files = list(csv_dir.glob("req_*.csv"))
+        def get_users_count(path: Path) -> int:
+            try:
+                return int(path.stem.split("_")[1])
+            except (IndexError, ValueError):
+                return 0
+                
+        csv_files.sort(key=get_users_count)
+        
+        for file_path in csv_files:
+            users = get_users_count(file_path)
+            if users == 0:
+                continue
+                
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    reader = csv.reader(f)
+                    headers = next(reader)
+                    
+                    req_idx = headers.index("Request Count")
+                    fail_idx = headers.index("Failure Count")
+                    med_idx = headers.index("Median Response Time")
+                    req_s_idx = headers.index("Requests/s")
+                    p90_idx = headers.index("90%")
+                    
+                    for row in reader:
+                        if len(row) > 1 and row[1] == "Aggregated":
+                            req_cnt = int(row[req_idx])
+                            fail_cnt = int(row[fail_idx])
+                            mediana = int(float(row[med_idx]))
+                            req_s = float(row[req_s_idx])
+                            p90 = int(float(row[p90_idx]))
+                            taxa_falha = fail_cnt / req_cnt if req_cnt > 0 else 0.0
+                            
+                            dados.append({
+                                "usuarios": users,
+                                "req_s": round(req_s, 2),
+                                "mediana": mediana,
+                                "p90": p90,
+                                "falhas": fail_cnt,
+                                "taxa_falha": round(taxa_falha, 4)
+                            })
+                            break
+            except Exception as e:
+                print(f"Erro ao ler/processar {file_path}: {e}")
+                
+    lang_display = "Python" if lang.lower() == "python" else "TypeScript"
+    
+    return {
+        "nome": f"{lang_display} + {tech_name}",
+        "tipo": f"{lang_display} {tech_name}",
+        "dados": dados
+    }
+
+
 # ==================== PYTHON ====================
-cenario_python_rest = {
-    "nome": "Python + REST",
-    "tipo": "Python REST",
-    "dados": [
-        {"usuarios": 900, "req_s": 5062, "mediana": 410, "p95": 850, "falhas": 0, "taxa_falha": 0.0},
-        {"usuarios": 1800, "req_s": 5188, "mediana": 380, "p95": 800, "falhas": 0, "taxa_falha": 0.0},
-        {"usuarios": 3600, "req_s": 5148, "mediana": 390, "p95": 810, "falhas": 0, "taxa_falha": 0.0},
-    ],
-}
-
-cenario_python_soap = {
-    "nome": "Python + SOAP",
-    "tipo": "Python SOAP",
-    "dados": [
-        {"usuarios": 900, "req_s": 1599, "mediana": 2000, "p95": 3500, "falhas": 0, "taxa_falha": 0.0},
-        {"usuarios": 1800, "req_s": 1655, "mediana": 1900, "p95": 3300, "falhas": 0, "taxa_falha": 0.0},
-        {"usuarios": 3600, "req_s": 1654, "mediana": 1800, "p95": 3600, "falhas": 0, "taxa_falha": 0.0},
-    ],
-}
-
-cenario_python_grpc = {
-    "nome": "Python + gRPC",
-    "tipo": "Python gRPC",
-    "dados": [
-        {"usuarios": 900, "req_s": 7052, "mediana": 12, "p95": 19, "falhas": 0, "taxa_falha": 0.0},
-        {"usuarios": 1800, "req_s": 7095, "mediana": 12, "p95": 18, "falhas": 0, "taxa_falha": 0.0},
-        {"usuarios": 3600, "req_s": 7206, "mediana": 12, "p95": 16, "falhas": 0, "taxa_falha": 0.0},
-    ],
-}
-
-cenario_python_graphql = {
-    "nome": "Python + GraphQL",
-    "tipo": "Python GraphQL",
-    "dados": [
-        {"usuarios": 900, "req_s": 3282, "mediana": 730, "p95": 1600, "falhas": 0, "taxa_falha": 0.0},
-        {"usuarios": 1800, "req_s": 3539, "mediana": 630, "p95": 1500, "falhas": 0, "taxa_falha": 0.0},
-        {"usuarios": 3600, "req_s": 3572, "mediana": 650, "p95": 1400, "falhas": 0, "taxa_falha": 0.0},
-    ],
-}
+cenario_python_rest = load_scenario_from_csv("python", "REST")
+cenario_python_soap = load_scenario_from_csv("python", "SOAP")
+cenario_python_grpc = load_scenario_from_csv("python", "gRPC")
+cenario_python_graphql = load_scenario_from_csv("python", "GraphQL")
 
 # ==================== TYPESCRIPT ====================
-cenario_typescript_rest = {
-    "nome": "TypeScript + REST",
-    "tipo": "TypeScript REST",
-    "dados": [
-        {"usuarios": 900, "req_s": 11790, "mediana": 10, "p95": 18, "falhas": 0, "taxa_falha": 0.0},
-        {"usuarios": 1800, "req_s": 11738, "mediana": 10, "p95": 18, "falhas": 0, "taxa_falha": 0.0},
-        {"usuarios": 3600, "req_s": 11780, "mediana": 9, "p95": 17, "falhas": 0, "taxa_falha": 0.0},
-    ],
-}
-
-cenario_typescript_soap = {
-    "nome": "TypeScript + SOAP",
-    "tipo": "TypeScript SOAP",
-    "dados": [
-        {"usuarios": 900, "req_s": 11565, "mediana": 13, "p95": 33, "falhas": 0, "taxa_falha": 0.0},
-        {"usuarios": 1800, "req_s": 10672, "mediana": 23, "p95": 140, "falhas": 0, "taxa_falha": 0.0},
-        {"usuarios": 3600, "req_s": 11659, "mediana": 12, "p95": 28, "falhas": 0, "taxa_falha": 0.0},
-    ],
-}
-
-cenario_typescript_grpc = {
-    "nome": "TypeScript + gRPC",
-    "tipo": "TypeScript gRPC",
-    "dados": [
-        {"usuarios": 900, "req_s": 8190, "mediana": 10, "p95": 13, "falhas": 0, "taxa_falha": 0.0},
-        {"usuarios": 1800, "req_s": 8203, "mediana": 10, "p95": 15, "falhas": 0, "taxa_falha": 0.0},
-        {"usuarios": 3600, "req_s": 8253, "mediana": 10, "p95": 13, "falhas": 0, "taxa_falha": 0.0},
-    ],
-}
-
-cenario_typescript_graphql = {
-    "nome": "TypeScript + GraphQL",
-    "tipo": "TypeScript GraphQL",
-    "dados": [
-        {"usuarios": 900, "req_s": 9515, "mediana": 50, "p95": 200, "falhas": 0, "taxa_falha": 0.0},
-        {"usuarios": 1800, "req_s": 9612, "mediana": 50, "p95": 180, "falhas": 0, "taxa_falha": 0.0},
-        {"usuarios": 3600, "req_s": 9389, "mediana": 54, "p95": 210, "falhas": 0, "taxa_falha": 0.0},
-    ],
-}
+cenario_typescript_rest = load_scenario_from_csv("typescript", "REST")
+cenario_typescript_soap = load_scenario_from_csv("typescript", "SOAP")
+cenario_typescript_grpc = load_scenario_from_csv("typescript", "gRPC")
+cenario_typescript_graphql = load_scenario_from_csv("typescript", "GraphQL")
 
 # Agrupamentos solicitados
 CENARIOS_PYTHON = [cenario_python_rest, cenario_python_soap, cenario_python_grpc, cenario_python_graphql]
@@ -165,7 +160,7 @@ def _plot_bar_chart_comparativo(cenarios: list[dict], metrica_chave: str, eixo_y
     for tech in tecnologias:
         # Busca cenário Python correspondente
         cen_py = next((c for c in cenarios if c["tipo"] == f"Python {tech}"), None)
-        if cen_py:
+        if cen_py and len(cen_py["dados"]) > 0:
             media_py = sum(d[metrica_chave] for d in cen_py["dados"]) / len(cen_py["dados"])
             python_medias.append(media_py)
         else:
@@ -173,7 +168,7 @@ def _plot_bar_chart_comparativo(cenarios: list[dict], metrica_chave: str, eixo_y
 
         # Busca cenário TypeScript correspondente
         cen_ts = next((c for c in cenarios if c["tipo"] == f"TypeScript {tech}"), None)
-        if cen_ts:
+        if cen_ts and len(cen_ts["dados"]) > 0:
             media_ts = sum(d[metrica_chave] for d in cen_ts["dados"]) / len(cen_ts["dados"])
             ts_medias.append(media_ts)
         else:
@@ -232,27 +227,27 @@ def main() -> None:
     # 0. Gráficos de Barras (Resumo Média Geral Python vs TS)
     # ==========================================
     _plot_bar_chart_comparativo(TODOS_CENARIOS, "req_s", "Média de RPS", "Comparação Direta: Média de RPS (Python vs TypeScript)", "barras_rps")
-    _plot_bar_chart_comparativo(TODOS_CENARIOS, "p95", "Média de P95 (ms)", "Comparação Direta: Média de Latência P95 (Python vs TypeScript)", "barras_p95")
+    _plot_bar_chart_comparativo(TODOS_CENARIOS, "p90", "Média de P90 (ms)", "Comparação Direta: Média de Latência P90 (Python vs TypeScript)", "barras_p90")
 
     configuracoes_graficos.append({
         "grupo": "🏆 Resumo Executivo (Médias Gerais Lado a Lado)",
         "graficos": [
             ("Comparação de Throughput (Média de RPS)", "barras_rps"),
-            ("Comparação de Latência (Média P95)", "barras_p95")
+            ("Comparação de Latência (Média P90)", "barras_p90")
         ]
     })
 
     # ==========================================
     # 1. Gráficos PYTHON (todos os protocolos)
     # ==========================================
-    _plot_metrica_vs_usuarios(CENARIOS_PYTHON, "p95", "Tempo de Resposta P95 (ms)", "P95 vs Usuários (Python)", "python_p95")
+    _plot_metrica_vs_usuarios(CENARIOS_PYTHON, "p90", "Tempo de Resposta P90 (ms)", "P90 vs Usuários (Python)", "python_p90")
     _plot_metrica_vs_usuarios(CENARIOS_PYTHON, "req_s", "Requisições por Segundo (RPS)", "RPS vs Usuários (Python)", "python_rps")
     _plot_metrica_vs_usuarios(CENARIOS_PYTHON, "mediana", "Mediana (ms)", "Mediana vs Usuários (Python)", "python_mediana")
     
     configuracoes_graficos.append({
         "grupo": "1. Python (REST vs SOAP vs gRPC vs GraphQL)",
         "graficos": [
-            ("Tempo de Resposta (P95)", "python_p95"),
+            ("Tempo de Resposta (P90)", "python_p90"),
             ("Requisições por Segundo (RPS)", "python_rps"),
             ("Mediana de Tempo de Resposta", "python_mediana")
         ]
@@ -261,14 +256,14 @@ def main() -> None:
     # ==========================================
     # 2. Gráficos TYPESCRIPT (todos os protocolos)
     # ==========================================
-    _plot_metrica_vs_usuarios(CENARIOS_TYPESCRIPT, "p95", "Tempo de Resposta P95 (ms)", "P95 vs Usuários (TypeScript)", "typescript_p95")
+    _plot_metrica_vs_usuarios(CENARIOS_TYPESCRIPT, "p90", "Tempo de Resposta P90 (ms)", "P90 vs Usuários (TypeScript)", "typescript_p90")
     _plot_metrica_vs_usuarios(CENARIOS_TYPESCRIPT, "req_s", "Requisições por Segundo (RPS)", "RPS vs Usuários (TypeScript)", "typescript_rps")
     _plot_metrica_vs_usuarios(CENARIOS_TYPESCRIPT, "mediana", "Mediana (ms)", "Mediana vs Usuários (TypeScript)", "typescript_mediana")
 
     configuracoes_graficos.append({
         "grupo": "2. TypeScript (REST vs SOAP vs gRPC vs GraphQL)",
         "graficos": [
-            ("Tempo de Resposta (P95)", "typescript_p95"),
+            ("Tempo de Resposta (P90)", "typescript_p90"),
             ("Requisições por Segundo (RPS)", "typescript_rps"),
             ("Mediana de Tempo de Resposta", "typescript_mediana")
         ]
@@ -277,46 +272,46 @@ def main() -> None:
     # ==========================================
     # 3. Gráficos por PROTOCOLO (Python vs TypeScript)
     # ==========================================
-    _plot_metrica_vs_usuarios(CENARIOS_REST, "p95", "Tempo de Resposta P95 (ms)", "P95 vs Usuários (REST)", "rest_p95")
+    _plot_metrica_vs_usuarios(CENARIOS_REST, "p90", "Tempo de Resposta P90 (ms)", "P90 vs Usuários (REST)", "rest_p90")
     _plot_metrica_vs_usuarios(CENARIOS_REST, "req_s", "Requisições por Segundo (RPS)", "RPS vs Usuários (REST)", "rest_rps")
 
     configuracoes_graficos.append({
         "grupo": "3. REST (Python vs TypeScript)",
         "graficos": [
-            ("Tempo de Resposta (P95)", "rest_p95"),
+            ("Tempo de Resposta (P90)", "rest_p90"),
             ("Requisições por Segundo (RPS)", "rest_rps")
         ]
     })
 
-    _plot_metrica_vs_usuarios(CENARIOS_SOAP, "p95", "Tempo de Resposta P95 (ms)", "P95 vs Usuários (SOAP)", "soap_p95")
+    _plot_metrica_vs_usuarios(CENARIOS_SOAP, "p90", "Tempo de Resposta P90 (ms)", "P90 vs Usuários (SOAP)", "soap_p90")
     _plot_metrica_vs_usuarios(CENARIOS_SOAP, "req_s", "Requisições por Segundo (RPS)", "RPS vs Usuários (SOAP)", "soap_rps")
 
     configuracoes_graficos.append({
         "grupo": "4. SOAP (Python vs TypeScript)",
         "graficos": [
-            ("Tempo de Resposta (P95)", "soap_p95"),
+            ("Tempo de Resposta (P90)", "soap_p90"),
             ("Requisições por Segundo (RPS)", "soap_rps")
         ]
     })
 
-    _plot_metrica_vs_usuarios(CENARIOS_GRPC, "p95", "Tempo de Resposta P95 (ms)", "P95 vs Usuários (gRPC)", "grpc_p95")
+    _plot_metrica_vs_usuarios(CENARIOS_GRPC, "p90", "Tempo de Resposta P90 (ms)", "P90 vs Usuários (gRPC)", "grpc_p90")
     _plot_metrica_vs_usuarios(CENARIOS_GRPC, "req_s", "Requisições por Segundo (RPS)", "RPS vs Usuários (gRPC)", "grpc_rps")
 
     configuracoes_graficos.append({
         "grupo": "5. gRPC (Python vs TypeScript)",
         "graficos": [
-            ("Tempo de Resposta (P95)", "grpc_p95"),
+            ("Tempo de Resposta (P90)", "grpc_p90"),
             ("Requisições por Segundo (RPS)", "grpc_rps")
         ]
     })
 
-    _plot_metrica_vs_usuarios(CENARIOS_GRAPHQL, "p95", "Tempo de Resposta P95 (ms)", "P95 vs Usuários (GraphQL)", "graphql_p95")
+    _plot_metrica_vs_usuarios(CENARIOS_GRAPHQL, "p90", "Tempo de Resposta P90 (ms)", "P90 vs Usuários (GraphQL)", "graphql_p90")
     _plot_metrica_vs_usuarios(CENARIOS_GRAPHQL, "req_s", "Requisições por Segundo (RPS)", "RPS vs Usuários (GraphQL)", "graphql_rps")
 
     configuracoes_graficos.append({
         "grupo": "6. GraphQL (Python vs TypeScript)",
         "graficos": [
-            ("Tempo de Resposta (P95)", "graphql_p95"),
+            ("Tempo de Resposta (P90)", "graphql_p90"),
             ("Requisições por Segundo (RPS)", "graphql_rps")
         ]
     })
@@ -324,14 +319,14 @@ def main() -> None:
     # ==========================================
     # 7. Gráficos GERAIS (Todos Juntos)
     # ==========================================
-    _plot_metrica_vs_usuarios(TODOS_CENARIOS, "p95", "Tempo de Resposta P95 (ms)", "Visão Geral: P95 vs Usuários", "geral_p95")
+    _plot_metrica_vs_usuarios(TODOS_CENARIOS, "p90", "Tempo de Resposta P90 (ms)", "Visão Geral: P90 vs Usuários", "geral_p90")
     _plot_metrica_vs_usuarios(TODOS_CENARIOS, "req_s", "Requisições por Segundo (RPS)", "Visão Geral: RPS vs Usuários (Todos os Protocolos)", "geral_rps")
     _plot_metrica_vs_usuarios(TODOS_CENARIOS, "mediana", "Mediana (ms)", "Visão Geral: Mediana vs Usuários", "geral_mediana")
 
     configuracoes_graficos.append({
         "grupo": "7. Visão Geral em Linha (Todos os Protocolos e Linguagens)",
         "graficos": [
-            ("Tempo de Resposta (P95)", "geral_p95"),
+            ("Tempo de Resposta (P90)", "geral_p90"),
             ("Requisições por Segundo (RPS) - Comparação Geral", "geral_rps"),
             ("Mediana de Tempo de Resposta", "geral_mediana")
         ]
