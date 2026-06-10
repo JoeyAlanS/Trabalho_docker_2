@@ -244,6 +244,7 @@ class SOAPService(ServiceBase):
         return "Deletado com sucesso"
 
 application = Application([SOAPService], 'streaming.soap', in_protocol=Soap11(validator='lxml'), out_protocol=Soap11())
+wsgi_app = WsgiApplication(application)
 
 if __name__ == '__main__':
-    run_simple('0.0.0.0', 8002, WsgiApplication(application), threaded=True)
+    run_simple('0.0.0.0', 8002, wsgi_app, threaded=True)

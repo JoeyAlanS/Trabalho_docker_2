@@ -27,21 +27,21 @@ services:
     build: 
       context: .
       dockerfile: python/Dockerfile
-    command: uvicorn rest_app:app --host 0.0.0.0 --port 8000
+    command: uvicorn rest_app:app --host 0.0.0.0 --port 8000 --workers 4
     ports: ["8000:8000"]
     depends_on: [db]
   graphql_py:
     build: 
       context: .
       dockerfile: python/Dockerfile
-    command: uvicorn graphql_app:app --host 0.0.0.0 --port 8001
+    command: uvicorn graphql_app:app --host 0.0.0.0 --port 8001 --workers 4
     ports: ["8001:8001"]
     depends_on: [db]
   soap_py:
     build: 
       context: .
       dockerfile: python/Dockerfile
-    command: python soap_app.py
+    command: gunicorn -w 4 -b 0.0.0.0:8002 soap_app:wsgi_app
     ports: ["8002:8002"]
     depends_on: [db]
   grpc_py:
@@ -57,28 +57,28 @@ services:
     build: 
       context: .
       dockerfile: typescript/Dockerfile
-    command: npx ts-node src/rest_app.ts
+    command: pm2-runtime start dist/rest_app.js -i 4
     ports: ["9000:9000"]
     depends_on: [db]
   graphql_ts:
     build: 
       context: .
       dockerfile: typescript/Dockerfile
-    command: npx ts-node src/graphql_app.ts
+    command: pm2-runtime start dist/graphql_app.js -i 4
     ports: ["9001:9001"]
     depends_on: [db]
   soap_ts:
     build: 
       context: .
       dockerfile: typescript/Dockerfile
-    command: npx ts-node src/soap_app.ts
+    command: pm2-runtime start dist/soap_app.js -i 4
     ports: ["9002:9002"]
     depends_on: [db]
   grpc_ts:
     build: 
       context: .
       dockerfile: typescript/Dockerfile
-    command: npx ts-node src/grpc_app.ts
+    command: node dist/grpc_app.js
     ports: ["50052:50052"]
     depends_on: [db]
 

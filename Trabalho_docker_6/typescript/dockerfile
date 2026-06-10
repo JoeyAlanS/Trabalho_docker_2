@@ -2,7 +2,8 @@ FROM node:18
 WORKDIR /app
 
 COPY typescript/ .
-
 COPY streaming.proto .
 
 RUN npm install
+RUN npx tsc
+RUN npm install -g pm2

@@ -136,21 +136,31 @@ class Teste_4_gRPC(HttpUser):
     #abstract = True  # Comente esta linha para ATIVAR o gRPC
     wait_time = between(0.1, 0.5)
 
+    def on_start(self):
+        # Abre conexões persistentes por usuário para evitar overhead de handshake a cada chamada
+        self.channel_py = grpc.insecure_channel(HOST_GRPC_PY)
+        self.stub_py = streaming_pb2_grpc.StreamingServiceStub(self.channel_py)
+        
+        self.channel_ts = grpc.insecure_channel(HOST_GRPC_TS)
+        self.stub_ts = streaming_pb2_grpc.StreamingServiceStub(self.channel_ts)
+
+    def on_stop(self):
+        self.channel_py.close()
+        self.channel_ts.close()
+
     #@task  
     def grpc_python(self):
-        self._disparar_grpc(HOST_GRPC_PY, "4. gRPC (PY) - Músicas")
+        self._disparar_grpc(self.stub_py, "4. gRPC (PY) - Músicas")
 
     @task  
     def grpc_typescript(self):
-        self._disparar_grpc(HOST_GRPC_TS, "4. gRPC (TS) - Músicas")
+        self._disparar_grpc(self.stub_ts, "4. gRPC (TS) - Músicas")
 
-    def _disparar_grpc(self, host, name):
+    def _disparar_grpc(self, stub, name):
         start_time = time.time()
         try:
-            with grpc.insecure_channel(host) as channel:
-                stub = streaming_pb2_grpc.StreamingServiceStub(channel)
-                response = stub.ListarMusicas(streaming_pb2.Empty())
-                tamanho_bytes = response.ByteSize()
+            response = stub.ListarMusicas(streaming_pb2.Empty())
+            tamanho_bytes = response.ByteSize()
             
             events.request.fire(
                 request_type="gRPC", 
